@@ -17,28 +17,28 @@ close all
 screensize = get( groot, 'Screensize' );
 
 % NB: add to path: 
-fieldtripfolder = '/home/kolai/Documents/Shishkina/ProgramFiles/Fieldtrip/';
+fieldtripfolder = '/mnt/home/a_shishkina/fieldtrip/';
 path(path, fieldtripfolder)
 ft_defaults;
-path('/home/kolai/Documents/Shishkina/ProgramFiles/Fieldtrip/external/mne/', path);
+path('/mnt/home/a_shishkina/fieldtrip/external/mne/', path);
 
 % This is an external matlab package used to save figures to PPTX
-path('home/kolai/Documents/Shishkina/External_matlab/exportToPPTX_master/', path);
-path(path,'home/kolai/Documents/Shishkina/NeuralDataAnalysis/Autism/0101/MEGdata/FT/'); %for fdr_bh.m
+path('/mnt/home/a_shishkina/externals/pptx/', path);
+path(path,'/mnt/home/a_shishkina/projects/asd_meg/0101/MEGdata/FT/'); %for fdr_bh.m
 
-realDATAPATH = '/home/kolai/Documents/Shishkina/NeuralDataAnalysis/Autism/0101/MEGdata/';
-DATAPATH  = '/home/kolai/Documents/Shishkina/NeuralDataAnalysis/Autism/0101/MEGdata/FT_beamf/';
+realDATAPATH = '/mnt/home/a_shishkina/projects/asd_meg/0101/MEGdata/';
+DATAPATH  = '/mnt/home/a_shishkina/projects/asd_meg/0101/MEGdata/FT_beamf/';
 
 tapsmofrq = 5; %25
 gridres = 6; % 6 mm grid
 lambda='5%';
-gammarange = [30 110];
-gammamax = [45 90]; % low gamma is often suppressed at fast velocity-V3, therefore, the power increase maximum will be defined for gamma >45Hz
+alpha_betarange = [7 20];
+%gammamax = [45 90]; % low gamma is often suppressed at fast velocity-V3, therefore, the power increase maximum will be defined for gamma >45Hz
 Nvoxels = 25; % number of voxels [closest to the max] to average. We lloked at gamma spectra at this selection of voxels
 
 filt = 'yes';
-lpfreq=gammarange(2)+5;
-hpfreq=gammarange(1)-5;
+lpfreq=alpha_betarange(2)+5;
+hpfreq=alpha_betarange(1)-5;
 
 % colors for spectra
 color{1}{1}=':k'; color{1}{2}='--k'; color{1}{3}='-k';
@@ -61,9 +61,9 @@ template_mri.coordsys = 'mni';
 
 %  load atlas
 atlas = ft_read_atlas( strcat (fieldtripfolder, '/template/atlas/aal/ROI_MNI_V4.nii') ); 
-atlas = ft_convert_units(atlas,'cm');% assure that atlas and template_grid are expressed in the %same units
+atlas = ft_convert_units(atlas,'cm'); % assure that atlas and template_grid are expressed in the %same units
 
-% load template grid. Use the same template gris, that was used for the
+% load template grid. Use the same template grid, that was used for the
 % warped grid construction! Common for all subjects
 
 load (strcat(DATAPATH, '0101_oct-6/mri_nonlinwarp_6mm_brthr0.5/0101_template_grid.mat'));
@@ -73,7 +73,7 @@ cfg = [];
 cfg.atlas      = atlas;
 cfg.roi        = atlas.tissuelabel;  % here you can also specify a single label, i.e. single ROI
 cfg.inputcoord = 'mni';
-mask          = ft_volumelookup(cfg, template_grid);
+mask = ft_volumelookup(cfg, template_grid);
 
 %chose only the 'brain tissue' 
 template_grid.inside = false(template_grid.dim);
@@ -133,7 +133,7 @@ subj2 = SUBJ2(s,:);
 raw_fiff_file = strcat(realDATAPATH, '0101_rings_ICA_raw.fif');
 hdr = ft_read_header(raw_fiff_file);
 
-ev_name=['/home/kolai/Documents/Shishkina/NeuralDataAnalysis/Autism/0101/0101_clean_events.mat']
+ev_name=['/projects/asd_meg/0101/0101_clean_events.mat']
 load(ev_name)
 first= round(cast(hdr.orig.raw.first_samp, 'double'));
 events(:,1) =  events(:,1)-first;
@@ -158,7 +158,7 @@ cfg = [];
 cfg.trl=trl;
 cfg.channel     = 'meg';
 cfg.dftfilter   = 'yes';
-cfg.dftfreq     = [50 100];
+cfg.dftfreq     = [7 20];
 cfg.demean = 'yes';
 if strcmp(filt,'yes')  % filtering in the band-of-interest is recommended for lcmv
    cfg.lpfilter  = 'yes';
@@ -263,7 +263,7 @@ virtsens_post.grad =data2_post.grad;
 cfg = [];
 cfg.method    = 'mtmfft';
 cfg.output    = 'pow';
-cfg.foilim    = [5 gammarange(2)];
+cfg.foilim    = [5 alpha_betarange(2)];
 cfg.pad = 'nextpow2';
 cfg.tapsmofrq = tapsmofrq;
 cfg.keeptrials = 'yes';
@@ -299,7 +299,7 @@ f1=gammamax(1); f2=gammamax(2);
 gamma_ind = find(fd_pre.freq>=floor(f1) & fd_pre.freq<=ceil(f2) ); % gamma frequencues
 gamma_wholerange_ind = find(fd_pre.freq>=floor(gammarange(1)) & fd_pre.freq<=ceil(gammarange(2)) ); % gamma frequencues
 inside_id = find(template_grid.inside);
-DIFFgamma=   (mean( fd_post.powspctrm(:, gamma_ind),2)-mean(fd_pre.powspctrm(:, gamma_ind),2))./mean(fd_pre.powspctrm(:, gamma_ind) ,2); % average diff in gamma band
+DIFFgamma =  (mean( fd_post.powspctrm(:, gamma_ind),2)-mean(fd_pre.powspctrm(:, gamma_ind),2))./mean(fd_pre.powspctrm(:, gamma_ind) ,2); % average diff in gamma band
 
 Spectrum_pre{con} = fd_pre;
 Spectrum_post{con} = fd_post;
