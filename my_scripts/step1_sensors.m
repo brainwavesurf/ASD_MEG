@@ -3,15 +3,22 @@
 % Load data epochs 
 % Load info about the preseeding trials
 % Calculate spectral power on sensors in [-.8 to 0] interval
-% plot average alpha power  distribution of epochs following different
-% types of stimuli (Slow, Medium, Fast); plot Fast-Slow power differences
-% save pictures as PPTX
+% Plot the time-frequency representation of the trial for grad in the each condition by mtmconvol 
+% Plot the time-frequency representation for one channel with max power according to previous plot
+% Plot the time-frequency topoplot for grad in specific time and frequency range  
+% Plot TFR (time-frequency response) by Morlet wavelets with subtraction the phase locked activity to enhance the sensitivity to the induced activity 
+% Plot PSD (power spectra density) with multitapers
+% Do averaging over epochs and frequency bins of the alpha range
+% Plot Fast-Slow power differences for grad and mag
+% Plot PSD (power spectra density) with Hanning taper for low freq
+% Do averaging over epochs and frequency bins of the alpha range
+% Plot Fast-Slow power differences for grad and mag
 
 %restoredefaultpath;
 clear;
 close all;
 clc;
-screensize = get( groot, 'Screensize' );
+screensize = get( groot, 'Screensize');
 
 tapsmofrq  = 2;
 megfolder = strcat( 'meg_sensors_tapsmofrq', num2str(tapsmofrq));
@@ -41,34 +48,23 @@ for s=1: size (SUBJ,1)
     ep_fiff_file = strcat(epofolder, subj, '-noerror-lagcorrected-epo.fif')
     hdr = ft_read_header(ep_fiff_file);
     
-    
     cfg = [];  
     cfg.dataset = ep_fiff_file;
     cfg.channel={'meg'};
     epochs = ft_preprocessing(cfg);
-    
-    %% Plot average ERF: this has no sense for rebound, but you will see the evoked response
-    cfg = [];
-    cfg.channel = epochs.label;
-    cfg.covariance = 'yes';
-    avg = ft_timelockanalysis(cfg,epochs);
-    
-    hh=figure;
-    ttt = find(avg.time>-0.3 & avg.time<0.5);
-    plot (avg.time(ttt), avg.avg(:, ttt));
-    title ('Sensor averages')
    
     %% Calculating power in sensors, find max weighted freq, freq range and P of gamma enhancement in this freq range.
-    hh=figure;
-    LineColor{1} = 'b'; LineColor{2} = 'g'; LineColor{3} = 'r';
-    LineColorMax{1} = '--b'; LineColorMax{2} = '--g'; LineColorMax{3} = '--r';
-    ax=gca;
     
-%     % posterior sensors, you may use them later for extracting alpha peak
-%     power
-%     Ch = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
-%           'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
-   
+%   % posterior sensors, you may use them later for extracting alpha peak power
+    post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
+          'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
+    %%  group preceding events in order to select the epochs later on
+    % Load info anout the preceeding trials:
+    load ([ savemegto, '/', subj, '_info.mat'])
+    ev1 = find(allinfo.prev_stim_type==2); % i.e. epochs following slow
+    ev2 = find(allinfo.prev_stim_type==4); %... medium
+    ev3 = find(allinfo.prev_stim_type==8); % ... fast
+    prev = {ev1, ev2, ev3};
     %%    
     for con=1:3 % for conditions
         %select epochs according to preceding trials
@@ -76,110 +72,247 @@ for s=1: size (SUBJ,1)
         cfg.trials = prev{con}; % EV{con}';
         selepo = ft_selectdata(cfg, epochs);
         
+        %select interstimulus interval
         cfg = [];
         cfg.latency = [-0.8 0.0];
         dataPre = ft_selectdata(cfg, selepo);
         
-        
-% %         cfg.latency = [0.4 1.2];
-% %         latency_post = cfg.latency;
-% %         [dataPost] = ft_selectdata(cfg, selepo);
-        
-        % do spectral analysis using multitapers, we use 'pad' to make smooth
-        % spectrum. This can be later used to extract individual alpha peak frequency (IAF).
-        cfg = [];
-        cfg.method = 'mtmfft';
-        cfg.output ='pow'; % 'fourier'
-        cfg.taper = 'hanning';
-        cfg.keeptrials = 'yes';
-        cfg.foilim = alpharange; %freq band of interest
-        freqPre{con} = ft_freqanalysis(cfg, selepo);  % trials x Ch x freq
-        %freqPost = ft_freqanalysis(cfg, dataPost);
+        %select stimulation interval
+        %cfg = [];
+        %cfg.latency = [0.4 1.2];
+        %dataPost = ft_selectdata(cfg, selepo);
+      
+        %% mtmconvol gives the time-frequency representation of the trial, how the frequency content changes over time.
         
         cfg              = [];
         cfg.output       = 'pow';
         cfg.channel      = 'all';
         cfg.method       = 'mtmconvol';
         cfg.taper        = 'hanning';
-        cfg.foi          = 7:0.5:15;                         % analysis 2 to 30 Hz in steps of 2 Hz
-        cfg.t_ftimwin    = ones(length(cfg.foi),1).*0.5;   % length of time window = 0.5 sec
-        cfg.toi          = -1:0.05:1.2; 
+        cfg.foi          = 7:0.5:14;               
+        cfg.t_ftimwin    = 5./cfg.foi;   
+        cfg.toi          = -1:0.05:1.4; 
+        freqPre_conv{con}     = ft_freqanalysis(cfg, selepo); 
         
+        % Plot time-frequency for all planar grad 
         cfg = [];
-        cfg.baseline     = [0.2 1.2];
+        cfg.parameter    = 'powspctrm';
+        cfg.baseline     = [0.2 inf];
         cfg.baselinetype = 'absolute';
         cfg.showlabels   = 'yes';
         cfg.layout       = 'neuromag306planar.lay';
-        figure; ft_multiplotTFR(cfg, freqPre{con});
-
+        %cfg.channel      = post_sens;
+        cfg.masknans     = 'no'
+        cfg.renderer     = 'painters';
         
+        figure(1); 
+        ft_multiplotTFR(cfg, freqPre_conv{con}); colorbar;
+        title (strcat('time-frequency multiplot for all grad in condition', num2str(con)))
+        saveas(figure(1),[savepath, subj, '/', subj, '_TF_multiplot_cond_', num2str(con), '.jpeg', ]);
+        
+        %% Plot time-frequency for one channel with max power
         cfg = [];
         cfg.baseline     = [0.2 1.2];
         cfg.baselinetype = 'absolute';
         cfg.maskstyle    = 'saturation';
-        %cfg.zlim         = [0 2.33e-23];
-        cfg.channel      = 'MEG2042';
+        cfg.zlim         = [-1.99e-24 2.4e-23];
+        cfg.channel      = 'MEG2012';
         cfg.layout       = 'neuromag306planar.lay';
+        cfg.marker       = 'on';
         
-        figure;
-        ft_singleplotTFR(cfg, freqPre{con}); title('fast');
+        figure(2);
+        ft_singleplotTFR(cfg, freqPre_conv{con}); colorbar
+        title('single channel with max power plot');
+        saveas(figure(2),[savepath, subj, '/', subj, '_TF_single_ch_cond_', num2str(con), '.jpeg', ]);
+        
+        %% A topographic representation of the time-frequency representations 
+        cfg = [];
+        cfg.baseline     = [0.2 1.2];
+        cfg.baselinetype = 'absolute';
+        cfg.xlim         = [-0.3 0];
+        cfg.zlim         = [-1.99e-24 2.4e-23];
+        cfg.ylim         = [10 11.5];
+        cfg.layout       = 'neuromag306planar.lay';
+        cfg.marker       = 'on';
+        
+        figure(3);
+        ft_topoplotTFR(cfg, freqPre_conv{con}); colorbar
+        title (strcat('time-frequency topoplot for all grad in condition ', num2str(con)))
+        saveas(figure(3),[savepath, subj, '/', subj, '_TF_topoplot_cond_', num2str(con), '.jpeg', ]);
+        
+        %% identify the indices of trials with high and low alpha power
+        %tmp     = mean(freqPre{con}.powspctrm,2); %mean over frequencies between 7-14Hz
+        %ind     = find(mean(tmp,1)==max(mean(tmp,1)));  % find the sensor where power is max
+        %indhigh = find(tmp(:,ind)>=median(tmp(:,ind)));   
+        
+        %% TFR with Morlet wavelets 
+        % To enhance the sensitivity to the non-phase locked activity, we can subtract the phase locked activity 
+        
+        % Get timelocked again
+        timelock = ft_timelockanalysis([], selepo)
+        epochs2 = selepo;
+        for i = 1:length(selepo)
+            epochs2.trial{i} = selepo.trial{i} - timelock.avg;
+        end
+
+        % TFR with Morlet wavelets
+        cfg = [];
+        cfg.method       = 'wavelet';
+        cfg.foi          = 7:0.5:14;    
+        cfg.toi          = -1:0.01:1.4; 
+        cfg.width        = 7;
+        cfg.pad          = 'nextpow2';
+        tfr_wavelet{con} = ft_freqanalysis(cfg, epochs2);
+        
+        cfg = [];
+        cfg.parameter    = 'powspctrm';
+        cfg.layout       = 'neuromag306planar';
+        %cfg.channel     = post_sens;
+        cfg.baselinetype = 'relative';
+        cfg.baseline     = [0.1 inf];     
+        
+        figure(4); ft_multiplotTFR(cfg, tfr_wavelet{con}); colorbar; % wavelet analysis
+        title (strcat('TFR with Morlet wavelets in condition', num2str(con)))
+        saveas(figure(4),[savepath, subj, '/', subj, '_TFR_wavelets_cond_', num2str(con), '.jpeg']);
+        
+        %% do spectral analysis using multitapers, we use 'pad' to make smooth
+        % spectrum. This can be later used to extract individual alpha peak frequency (IAF).
+        
+        %Get PSD with multitapers
+        cfg = [];
+        cfg.method       = 'mtmfft';
+        cfg.output       ='pow'; % 'fourier'
+        cfg.taper        = 'dpss'; %multitapers
+        cfg.keeptrials   = 'yes';
+        cfg.pad          = 10; % to [vertually] increase spectral resolution
+        cfg.tapsmofrq    = tapsmofrq;
+        cfg.foilim       = [1 50]; %alpharange; %freq band of interest
+        freqPre_fft{con} = ft_freqanalysis(cfg, dataPre);  % trials x Ch x freq
+        %freqPost        = ft_freqanalysis(cfg, dataPost);
+         
+        % here we average over epochs and frequency bins of the alpha range
+        cfg=[];
+        cfg.frequency    = [7 14]; % Hz
+        cfg.avgoverrpt   = 'yes';
+        cfg.avgoverfreq  ='yes';
+        freqPre_avg{con} = ft_selectdata (cfg, freqPre_fft{con});
+        
+        freqPre_avg{con}.powspctrm = freqPre_avg{con}.powspctrm'; 
+        
+        MAXmag{con} = max(freqPre_avg{con}.powspctrm(1:3:306));  % for plot, to use the same scale for all events
+        MAXgrad{con} = max(freqPre_avg{con}.powspctrm(3:3:306));
+      
+        cfg=[];
+        cfg.layout = 'neuromag306planar.lay'; % plot only gradeometers
+        cfg.zlim = [-1*MAXgrad{con}, MAXgrad{con}];
+        cfg.colorbar = 'yes';
+        
+        figure(5); 
+        subplot(2,1,1); ft_topoplotER(cfg, freqPre_avg{con});
+        title (strcat('PSD for grad with mutitapers in condition', num2str(con)))
+        
+        cfg=[];
+        cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
+        cfg.zlim = [-1*MAXmag{con}, MAXmag{con}];
+        cfg.colorbar = 'yes';
+        
+        subplot(2,1,2); ft_topoplotER(cfg, freqPre_avg{con});
+        title (strcat('PSD for mag with mutitapers in condition', num2str(con)))
+        saveas(figure(5),[savepath, subj, '/', subj, '_PSD_cond_', num2str(con), '.jpeg']);
+
+        
+    end
+    %% calculate absolute power differences  between conditions: afterFast - afterSlow
+    diff_v3v1=freqPre_avg{1}; % use freqPre{1} structure, but change power for the 'difference'
+    diff_v3v1.powspctrm = freqPre_avg{3}.powspctrm  - freqPre_avg{1}.powspctrm;
+
+    %% plot power and power difference (Fast-Slow) for gradiometers    
+    cfg=[];
+    cfg.layout = 'neuromag306planar.lay'; % plot only gradiometers
+    cfg.colorbar = 'yes';
+    
+    figure(6); 
+    subplot(2,1,1); ft_topoplotER(cfg, diff_v3v1);
+    title ('PSD for grad alpha power Fast-Slow');
+    
+    cfg=[];
+    cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
+    cfg.colorbar = 'yes';
+
+    subplot(2,1,2); ft_topoplotER(cfg, diff_v3v1);
+    title ('PSD for mag alpha power Fast-Slow');
+    saveas(figure(6),[savepath, subj, '/', subj, '_PSD_diff_.jpeg']);
+
+        
+    for con=1:3
+        cfg = [];
+        cfg.trials = prev{con}; % EV{con}';
+        selepo = ft_selectdata(cfg, epochs);
+
+        %select interstimulus interval
+        cfg = [];
+        cfg.latency = [-0.8 0.0];
+        dataPre = ft_selectdata(cfg, selepo);
+        %% do spectral analysis using Hanning taper, for low freq
+
+        %Get PSD with Hanning taper
+        cfg = [];
+        cfg.method       = 'mtmfft';
+        cfg.output       ='pow'; 
+        cfg.taper        = 'hanning'; %Hanning taper
+        cfg.keeptrials   = 'yes';
+        cfg.foilim       = [1 30]; %alpharange; %freq band of interest
+        freqPre_fft_h{con} = ft_freqanalysis(cfg, dataPre);  % trials x Ch x freq
+        %freqPost        = ft_freqanalysis(cfg, dataPost);
 
         % here we average over epochs and frequency bins of the alpha range
         cfg=[];
-        cfg.frequency = alpharange; % Hz
-        cfg.avgoverrpt = 'yes';
-        %cfg.avgoverfreq ='yes';
-        freqPre{con} = ft_selectdata (cfg, freqPre{con});
-        
-        freqPre{con}.powspctrm = freqPre{con}.powspctrm';
-        
-        %MAXmag(con) = max(freqPre.powspctrm(1:3:306))  % for plot, to use the same scale for all events
-        MAXgrad(con) = max(freqPre{con}.powspctrm(3:3:204));  % for plot, to use the same scale for all events
+        cfg.frequency    = [7 14]; % Hz
+        cfg.avgoverrpt   = 'yes';
+        cfg.avgoverfreq  ='yes';
+        freqPre_avg{con} = ft_selectdata (cfg, freqPre_fft_h{con});
 
+        freqPre_avg{con}.powspctrm = freqPre_avg{con}.powspctrm'; 
+
+        MAXmag{con} = max(freqPre_avg{con}.powspctrm(1:3:306));  % for plot, to use the same scale for all events
+        MAXgrad{con} = max(freqPre_avg{con}.powspctrm(3:3:306));
+
+        cfg=[];
+        cfg.layout = 'neuromag306planar.lay'; % plot only gradeometers
+        cfg.zlim = [-1*MAXgrad{con}, MAXgrad{con}];
+        cfg.colorbar = 'yes';
+
+        figure(7); 
+        subplot(2,1,1); ft_topoplotER(cfg, freqPre_avg{con});
+        title (strcat('PSD for grad with Hanning taper in condition', num2str(con)))
+
+        cfg=[];
+        cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
+        cfg.zlim = [-1*MAXmag{con}, MAXmag{con}];
+        cfg.colorbar = 'yes';
+
+        subplot(2,1,2); ft_topoplotER(cfg, freqPre_avg{con});
+        title (strcat('PSD for mag with single Hanning taper in condition', num2str(con)))
+        saveas(figure(7),[savepath, subj, '/', subj, '_PSD_hann_cond_', num2str(con), '.jpeg']);
     end
     %% calculate absolute power differences  between conditions: afterFast - afterSlow
-    diff_v3v1=freqPre{1} ; % use freqPre{1} structure, but change power for the 'difference'
-    diff_v3v1.powspctrm = freqPre{3}.powspctrm  - freqPre{1}.powspctrm;
+    diff_v3v1=freqPre_avg{1}; % use freqPre{1} structure, but change power for the 'difference'
+    diff_v3v1.powspctrm = freqPre_avg{3}.powspctrm  - freqPre_avg{1}.powspctrm;
 
-    %% plot power and power difference (Fast-Slow) for gradiometers
-    %pos_fig1 = [10 10 screensize(3)/10*9 screensize(4)/3];    
-    
-    pos_fig1 = [10 10 screensize(3)/10*9 screensize(4)/3];    
-    hh=figure('Position',pos_fig1);
-
+    %% plot power and power difference (Fast-Slow) for gradiometers    
     cfg=[];
-    cfg.layout = 'neuromag306planar.lay'; % plot only gradeometers
-    cfg.zlim = [-1*max(MAXgrad), max(MAXgrad)];
+    cfg.layout = 'neuromag306planar.lay'; % plot only gradiometers
     cfg.colorbar = 'yes';
-    subplot(1,4,1)
-    ft_topoplotER(cfg,freqPre{1}); title('following Slow');
-    subplot(1,4,2)
-    ft_topoplotER(cfg,freqPre{2}); title('following Medium');
-    subplot(1,4,3)
-    ft_topoplotER(cfg,freqPre{3}); title('following Fast');
+    
+    figure(8); 
+    subplot(2,1,1); ft_topoplotER(cfg, diff_v3v1);
+    title ('PSD Hann for grad alpha power Fast-Slow');
+    
     cfg=[];
-    cfg.layout = 'neuromag306planar.lay'; % plot only gradeometers
-    subplot(1,4,4); ft_topoplotER(cfg,diff_v3v1); title('alpha power Fast-Slow');
-    
-    subtitle ('Gradiometers Alpha power [-0.8 to 0 s], according to the type of the preceeding event')
-    
+    cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
+    cfg.colorbar = 'yes';
 
-%     %% plot power  and power difference (Fast-Slow) for magnetometers
-%     pos_fig1 = [10 10 screensize(3)/10*9 screensize(4)/3];    
-%     hh=figure('Position',pos_fig1);
-%     cfg=[];
-%     cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
-%     cfg.zlim = [-1*max(MAXmag), max(MAXmag)];
-%     subplot(1,4,1); ft_topoplotER(cfg,freqPre{1}); title('following Slow');
-%     subplot(1,4,2); ft_topoplotER(cfg,freqPre{2}); title('following Medium');
-%     subplot(1,4,3); ft_topoplotER(cfg,freqPre{3}); title('following Fast');
-%     cfg=[];
-%     cfg.layout = 'neuromag306mag.lay'; % plot only magnetometers
-%     subplot(1,4,4); ft_topoplotER(cfg,diff_v3v1); title('alpha power Fast-Slow');
-% %     colorbar
-% %     
-    
-
+    subplot(2,1,2); ft_topoplotER(cfg, diff_v3v1);
+    title ('PSD Hann for mag alpha power Fast-Slow');
+    saveas(figure(8),[savepath, subj, '/', subj, '_PSD_hann_diff_.jpeg']);
 end % for subjects
-
-
