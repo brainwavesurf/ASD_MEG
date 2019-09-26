@@ -44,7 +44,7 @@ for s=1: size (SUBJ,1)
     cfg.dataset = ep_fiff_file;
     cfg.channel={'meg'};
     epochs = ft_preprocessing(cfg);
-   
+    
     %% Calculating power in sensors, find max weighted freq, freq range and P of alpha enhancement in this freq range.
     
     % posterior sensors, you may use them later for extracting alpha peak power
@@ -372,4 +372,47 @@ for s=1: size (SUBJ,1)
     title ('Diff PSD with Hanning taper (mag) Fast-Slow');
     saveas(figure(11),[savepath, subj, '/', subj, 'Diff_v3v1_PSD_hann_.jpeg']);
     
+    %% Averaged time-frequency responses. hanning with fixed window.
+    
+    cfg              = [];
+    cfg.output       = 'pow';
+    cfg.method       = 'mtmconvol';
+    cfg.taper        = 'hanning';
+    cfg.toi          = -0.8 : 0.1 : 0.0;
+    cfg.foi          = 7:20;
+    cfg.t_ftimwin    = ones(size(cfg.foi)) * 0.5;
+    TFR_all          = ft_freqanalysis(cfg, epochs);
+
+    cfg.trials       = find(allinfo.prev_stim_type==2);
+    TFR_slow         = ft_freqanalysis(cfg, epochs);
+
+    cfg.trials       = find(allinfo.prev_stim_type==8);
+    TFR_fast         = ft_freqanalysis(cfg, epochs);
+ 
+    cfg = [];
+    cfg.baseline     = [0 inf];
+    cfg.baselinetype = 'absolute';
+    cfg.layout       = 'neuromag306mag.lay';
+
+    figure(1);
+    ft_multiplotTFR(cfg, TFR_slow); 
+    title('TFR Hanning with fxed window in slow condition'); colorbar;
+    saveas(figure(1),[savepath, subj, '/', subj, '_TFR_Hann_fixwindow_slow.jpeg' ]);
+    
+    figure(2);
+    ft_multiplotTFR(cfg, TFR_fast);
+    title('TFR Hanning with fxed window in fast condition'); colorbar;
+    saveas(figure(2),[savepath, subj, '/', subj, '_TFR_Hann_fixwindow_fast.jpeg' ]);
+    
+    %Compute contrast between response for different velocity 
+    cfg = [];
+    cfg.parameter = 'powspctrm';
+    cfg.operation = '(x1-x2)/(x1+x2)';
+    TFR_diff      = ft_math(cfg, TFR_fast, TFR_slow);
+
+    cfg = [];
+    cfg.marker  = 'on';
+    cfg.layout  = 'neuromag306mag.lay';
+    figure; ft_multiplotTFR(cfg, TFR_diff);
+
 end
