@@ -89,7 +89,7 @@ for s=1: size (SUBJ,1)
         % Plot time-frequency for all planar grad 
         cfg = [];
         cfg.parameter    = 'powspctrm';
-        cfg.baseline     = [0.1 inf];
+        cfg.baseline     = [0 inf];
         cfg.baselinetype = 'absolute';
         cfg.showlabels   = 'yes';
         cfg.layout       = 'neuromag306planar.lay';
@@ -101,7 +101,7 @@ for s=1: size (SUBJ,1)
         
         % Plot time-frequency for one channel with max power
         cfg = [];
-        cfg.baseline     = [0.1 inf];
+        cfg.baseline     = [0 inf];
         cfg.baselinetype = 'absolute';
         cfg.maskstyle    = 'saturation';
         cfg.zlim         = 'absmax';
@@ -165,7 +165,7 @@ for s=1: size (SUBJ,1)
         cfg.layout       = 'neuromag306planar';
         cfg.showlabels   = 'yes';
         cfg.baselinetype = 'absolute';
-        cfg.baseline     = [0.1 inf];     
+        cfg.baseline     = [0 inf];     
         
         figure(4); ft_multiplotTFR(cfg, tfr_wavelet{con}); colorbar; % wavelet analysis
         title (strcat('TFR with Morlet wavelets in condition', num2str(con)))
@@ -173,7 +173,7 @@ for s=1: size (SUBJ,1)
         
         % Plot TFR wavelet for one channel with max power
         cfg = [];
-        cfg.baseline     = [0.1 inf];
+        cfg.baseline     = [0 inf];
         cfg.baselinetype = 'absolute';
         cfg.maskstyle    = 'saturation';
         cfg.zlim         = 'absmax';
