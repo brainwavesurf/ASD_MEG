@@ -40,55 +40,5 @@ cfg.ivar        = 1; % row of design matrix that contains independent variable (
 
 paired_ttest = ft_freqstatistics(cfg, pow_slow{:}, pow_fast{:});
 
-
-%% Calculate cluster based permutation test
-cfg = [];
-cfg.method           = 'montecarlo';
-cfg.statistic        = 'ft_statfun_depsamplesT';
-cfg.correctm         = 'cluster';
-cfg.clusteralpha     = 0.05;
-cfg.clusterstatistic = 'maxsum';
-cfg.minnbchan        = 2;
-cfg.tail             = 0;
-cfg.clustertail      = 0;
-cfg.alpha            = 0.025;
-cfg.numrandomization = 500;
-% prepare_neighbours determines what sensors may form clusters
-cfg_neighb.method    = 'distance';
-cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, pow_slow{1});
-
-nsubj           = (size (SUBJ,1));
-cfg.design(1,:) = [1:nsubj 1:nsubj];
-cfg.design(2,:) = [ones(1,nsubj)*1 ones(1,nsubj)*2];
-cfg.uvar        = 1; % row of design matrix that contains unit variable (in this case: subjects)
-cfg.ivar        = 2; % row of design matrix that contains independent variable (the conditions)
-
-[cluster_stat] = ft_freqstatistics(cfg, pow_slow{:}, pow_fast{:});
-
-% calculate the grand average for each condition
-cfg = [];
-GA_slow       = ft_freqgrandaverage(cfg,pow_slow{:});
-GA_fast       = ft_freqgrandaverage(cfg,pow_fast{:});
-% "{:}" means to use data from all elements of the variable
-
-cfg = [];
-cfg.operation = 'subtract';
-cfg.parameter = 'powspctrm';
-GA_fastVSslow = ft_math(cfg,GA_fast,GA_slow);
-
-% In case you have downloaded and loaded the data, ensure stat.cfg.alpha exist
-if ~isfield(cluster_stat.cfg,'alpha'); cluster_stat.cfg.alpha = 0.025; end; % stat.cfg.alpha was moved as the downloaded data was processed by an additional FieldTrip function to anonymize the data.
-
-% plot
-figure(1);
-pos_int = zeros(numel(GA_fastVSslow.label),1);
-cfg.highlight = 'on';
-cfg.highlightchannel = find(pos_int);
-cfg.commentpos = 'title';
-cfg.layout = 'neuromag306planar_helmet.mat';
-ft_topoplotER(cfg, GA_fastVSslow);
-
-saveas(figure(1),[savepath, '1_results_plot/', 'cluster_based_PSD.jpeg']);
-
 filename = strcat(savepath, '1_results_plot/', 'paired_ttest.mat');
-save (filename, 'paired_ttest', 'cluster_stat');
+save (filename, 'paired_ttest');
