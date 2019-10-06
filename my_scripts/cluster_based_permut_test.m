@@ -52,10 +52,10 @@ for s=1: size (SUBJ,1)
     
     cfg           = [];
     cfg.trials    = slow_ind;
-    fast_epochs   = ft_selectdata(cfg, epochs);
+    slow_epochs   = ft_selectdata(cfg, epochs);
     
     cfg.trials    = fast_ind;
-    slow_epochs   = ft_selectdata(cfg, epochs);
+    fast_epochs   = ft_selectdata(cfg, epochs);
     
     %% Calculate the TFRs for the two experimental conditions (Fast and Slow) for each subject
     cfg = [];
