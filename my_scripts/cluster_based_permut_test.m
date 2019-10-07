@@ -44,7 +44,7 @@ for s=1: size (SUBJ,1)
     %% Load unfiltered epochs 
     ep_fiff_file = strcat(epofolder, subj, '-noerror-lagcorrected-epo.fif')
     hdr = ft_read_header(ep_fiff_file);
-    
+     
     cfg           = [];  
     cfg.dataset   = ep_fiff_file;
     cfg.channel   = {'MEG'};
@@ -61,7 +61,7 @@ for s=1: size (SUBJ,1)
     cfg = [];
     cfg.channel    = 'MEG';
     cfg.method     = 'wavelet';
-    cfg.width      = 7;
+    cfg.width      = 3;
     cfg.output     = 'pow';
     cfg.foi        = 5:20;
     cfg.toi        = -1:0.05:1.2;
@@ -69,29 +69,59 @@ for s=1: size (SUBJ,1)
     freqFast{s}  = ft_freqanalysis(cfg, fast_epochs);
     freqSlow{s}  = ft_freqanalysis(cfg, slow_epochs);
     
+    % Plot TFR wavelet for one channel with max power
+    figure(1);
+    cfg = [];
+    cfg.baseline     = [0.1 inf];
+    cfg.baselinetype = 'absolute';
+    cfg.maskstyle    = 'saturation';
+    cfg.zlim         = 'absmax';
+    cfg.channel      = 'MEG2043';
+    cfg.layout       = 'neuromag306planar.lay';
+    cfg.marker       = 'on';
+    subplot(2,1,1); ft_singleplotTFR(cfg, freqSlow{s}); title('width = 3, slow');
+    subplot(2,1,2); ft_singleplotTFR(cfg, freqFast{s}); title('width = 3, fast');
     
-    %Plot the results
-    %cfg = [];
-    %cfg.showlabels   = 'yes';
-    %cfg.layout       = 'neuromag306planar_helmet.mat';
-    %figure
-    %ft_multiplotTFR(cfg, freqFast)
+    saveas(figure(1), [savepath, subj, '/', subj, '_TFwavelet_width3.jpeg']);
 end
 %% Calculate the grand averages of the TFRs for the fast and slow conditions
 
 cfg = [];
 cfg.foilim = [5 20];
-cfg.toilim = [-0.8 0];
+cfg.toilim = [-1 1.2];
 cfg.channel = 'meg';
 slow_avg = ft_freqgrandaverage(cfg, freqSlow{:});
 fast_avg = ft_freqgrandaverage(cfg, freqFast{:});
 
 %Averaging of grads info because of warning "discarding gradiometer information because it cannot be averaged" 
-AvgGrad_fast = ft_average_sens([freqFast{1}.grad, freqFast{2}.grad, freqFast{3}.grad]);
+input_fast = [];
+input_slow = [];
+for i = 1:3
+    input_fast = [input_fast, freqFast{i}.grad];
+    input_slow = [input_slow, freqSlow{i}.grad];
+end
+
+AvgGrad_fast = ft_average_sens(input_fast);
 fast_avg.grad = AvgGrad_fast;
 
-AvgGrad_slow = ft_average_sens([freqSlow{1}.grad, freqSlow{2}.grad, freqSlow{3}.grad]);
+AvgGrad_slow = ft_average_sens(input_slow);
 slow_avg.grad = AvgGrad_slow;
+
+
+% Plot TFR wavelet for averaged data
+figure(1);
+cfg = [];
+cfg.baseline     = [0 inf];
+cfg.baselinetype = 'absolute';
+cfg.maskstyle    = 'saturation';
+cfg.zlim         = 'absmax';
+cfg.channel      = 'MEG2043';
+cfg.layout       = 'neuromag306planar.lay';
+cfg.marker       = 'on';
+subplot(2,1,1); ft_singleplotTFR(cfg, slow_avg); title('width = 3, slow'); 
+subplot(2,1,2); ft_singleplotTFR(cfg, fast_avg); title('width = 3, fast');
+
+saveas(figure(1), [savepath, '1_results/', 'three_avg_TFwavelet_width3.jpeg']);
 
 %% do cluster-based permutation test
 cfg = [];
