@@ -59,7 +59,7 @@ cfg.latency = [-0.8 0];
 cfg.avgoverchan = 'yes';
 cfg.avgoverrpt ='yes';
 slow_avg_grad = ft_selectdata(cfg, freqSlow_grad{:});
-fast_avg_grad = ft_selectdata(cfg, freqSlow_grad{:});
+fast_avg_grad = ft_selectdata(cfg, freqFast_grad{:});
 
 % label: {'mean(MEG1732, MEG1733, MEG1912, MEG1913, MEG1922, MEG1923, MEG1932, MEG1933, MEG1942, MEG1943, MEG2012, MEG2013, MEG2022, MEG2023, MEG2032, MEG2033, MEG2042, MEG2043, MEG2112, MEG2113, MEG2122, MEG2123, MEG2312, MEG2313, MEG2322, MEG2323, MEG2332, MEG2333, MEG2342, MEG2343, MEG2512, MEG2513)'}
 %          freq: [1×491 double]
@@ -71,18 +71,24 @@ fast_avg_grad = ft_selectdata(cfg, freqSlow_grad{:});
 %plot figures
 figure(1)
 subplot(2,1,1)
-semilogy(slow_avg_grad.freq, slow_avg_grad.powspctrm(1,:)); title('FFT power, avg posterior sens for all subj in slow cond')
+semilogy(slow_avg_grad.freq, slow_avg_grad.powspctrm(1,:), '-g'); title('FFT power, avg posterior sens for all subj')
+hold on
+semilogy(fast_avg_grad.freq, fast_avg_grad.powspctrm(1,:), '-b'); 
+legend('slow', 'fast')
 
 subplot(2,1,2)
-plot(slow_avg_grad.freq, log(slow_avg_grad.powspctrm(1,:))); title('FFT log power, avg posterior sens for all subj in slow')
+plot(slow_avg_grad.freq, log(slow_avg_grad.powspctrm(1,:)), '-g'); title('FFT log power, avg posterior sens for all subj')
+hold on
+plot(fast_avg_grad.freq, log(fast_avg_grad.powspctrm(1,:)), '-b'); 
 set(gca,'yscale','log');
-saveas(figure(1),[savepath, '/1_results/', subj, '_FFT_plot_slow.jpeg']);
+legend('slow', 'fast')
+saveas(figure(1),[savepath, '/1_results/', 'FFT_plot.jpeg']);
 
-figure(2)
+
 subplot(2,1,1)
-semilogy(fast_avg_grad.freq, fast_avg_grad.powspctrm(1,:)); title('FFT power, avg posterior sens for all subj in fast cond')
+semilogy(fast_avg_grad.freq, fast_avg_grad.powspctrm(1,:), '-r'); title('FFT power, avg posterior sens for all subj in fast cond')
 
 subplot(2,1,2)
 plot(fast_avg_grad.freq, log(fast_avg_grad.powspctrm(1,:))); title('FFT log power, avg posterior sens for all subj in fast')
 set(gca,'yscale','log');
-saveas(figure(2),[savepath, '/1_results/', subj, '_FFT_plot_fast.jpeg']);
+%saveas(figure(2),[savepath, '/1_results/', 'FFT_plot_fast.jpeg']);
