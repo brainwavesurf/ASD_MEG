@@ -48,7 +48,7 @@ for s=1: size (SUBJ,1)
     cfg.taper        = 'hanning';
     cfg.foi          = [5:30];                 
     cfg.toi          = [-1:0.05:1.2]; 
-    cfg.t_ftimwin    = 5./cfg.foi; 
+    cfg.t_ftimwin    = 3./cfg.foi; 
     conv_fast_mag  = ft_freqanalysis(cfg, epo_fast_mag);
     conv_slow_mag  = ft_freqanalysis(cfg, epo_slow_mag);
     conv_fast_grad = ft_freqanalysis(cfg, epo_fast_grad);
@@ -60,7 +60,7 @@ for s=1: size (SUBJ,1)
     cfg.method       = 'wavelet';
     cfg.foi          = [5:30];                 
     cfg.toi          = [-1:0.05:1.2];
-    cfg.width        = 5;
+    cfg.width        = 3;
     cfg.pad          = 'nextpow2';
     wvlts_fast_mag  = ft_freqanalysis(cfg, epo_fast_mag);
     wvlts_slow_mag  = ft_freqanalysis(cfg, epo_slow_mag);
@@ -89,4 +89,14 @@ for s=1: size (SUBJ,1)
         'fft_fast_mag', 'fft_slow_mag', 'fft_fast_grad', 'fft_slow_grad');
     end
     
+   for s=1: size (SUBJ,1)
+       
+   subj = SUBJ (s,:);    
+   freq_analysis{s} = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
+   
+   end
+   
+   %save stats
+   filename = strcat(savepath, '1_results/', 'freq_analysis.mat');
+   save(filename, 'freq_analysis');
    
