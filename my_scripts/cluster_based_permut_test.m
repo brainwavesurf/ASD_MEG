@@ -34,8 +34,8 @@ for s=1: size (SUBJ,1)
     %load data after freqanalysis 
     freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
     %after mtmconvol
-    freqFast_mag{s}  = freq_all.conv_fast_mag;
-    freqSlow_mag{s}  = freq_all.conv_slow_mag;
+    freqFast_mag{s}  = freq_all.wvlts_fast_mag;
+    freqSlow_mag{s}  = freq_all.wvlts_slow_mag;
 end
 % %% Calculate the grand averages of the TFRs for the fast and slow conditions
 % cfg = [];
@@ -63,7 +63,7 @@ end
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.8 0];
-cfg.frequency        = [5 30];
+cfg.frequency        = [8 12];
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -94,10 +94,13 @@ cfg.uvar     = 1;
 cfg.ivar     = 2;
 
 [within_subj_stat] = ft_freqstatistics(cfg, freqSlow_mag{:}, freqFast_mag{:})
-
+stat_value = within_subj_stat.stat;
 %save stats
 filename = strcat(savepath, '1_results/', 'within_subjs_stat.mat');
 save(filename, 'within_subj_stat');
+
+filename = strcat(savepath, '1_results/', 'stat_value.mat');
+save(filename, 'stat_value');
    
 %plot
 cfg = [];
