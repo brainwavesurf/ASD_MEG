@@ -38,37 +38,38 @@ for s=1: size (SUBJ,1)
     %load preprocessed epochs
     epo = load(strcat(epofolder, subj, '_preproc_epochs.mat'));
     
-    %select grad and mag epochs separately for slow and fast conditions
+    %select mag epochs separately for slow and fast conditions
     cfg = [];
     cfg.channel = 'MEGMAG';
     epo_fast_mag = ft_selectdata(cfg, epo.fast_epochs);
     epo_slow_mag = ft_selectdata(cfg, epo.slow_epochs);
     
+    %load data after freqanalysis 
     freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
-    
+    %after mtmconvol
     freqFast_mag{s}  = freq_all.conv_fast_mag;
     freqSlow_mag{s}  = freq_all.conv_slow_mag;
 end
-%% Calculate the grand averages of the TFRs for the fast and slow conditions
-cfg = [];
-cfg.foilim = [5 30];
-cfg.toilim = [-0.8 0];
-slow_avg = ft_freqgrandaverage(cfg, freqSlow_mag{:});
-fast_avg = ft_freqgrandaverage(cfg, freqFast_mag{:});
-
-%Averaging of grads info because of warning "discarding gradiometer information because it cannot be averaged" 
-input_fast = [];
-input_slow = [];
-for i = 1:3
-    input_fast = [input_fast, freqFast_mag{i}.grad];
-    input_slow = [input_slow, freqSlow_mag{i}.grad];
-end
-
-AvgGrad_fast = ft_average_sens(input_fast);
-fast_avg.grad = AvgGrad_fast;
-
-AvgGrad_slow = ft_average_sens(input_slow);
-slow_avg.grad = AvgGrad_slow;
+% %% Calculate the grand averages of the TFRs for the fast and slow conditions
+% cfg = [];
+% cfg.foilim = [5 30];
+% cfg.toilim = [-0.8 0];
+% slow_avg = ft_freqgrandaverage(cfg, freqSlow_mag{:});
+% fast_avg = ft_freqgrandaverage(cfg, freqFast_mag{:});
+% 
+% %Averaging of grads info because of warning "discarding gradiometer information because it cannot be averaged" 
+% input_fast = [];
+% input_slow = [];
+% for i = 1:3
+%     input_fast = [input_fast, freqFast_mag{i}.grad];
+%     input_slow = [input_slow, freqSlow_mag{i}.grad];
+% end
+% 
+% AvgGrad_fast = ft_average_sens(input_fast);
+% fast_avg.grad = AvgGrad_fast;
+% 
+% AvgGrad_slow = ft_average_sens(input_slow);
+% slow_avg.grad = AvgGrad_slow;
 
 %% do cluster-based permutation test
 
@@ -115,13 +116,13 @@ save(filename, 'within_subj_stat');
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
-cfg.zlim   = [-4 4];
 cfg.layout = 'neuromag306mag_helmet.mat';
 ft_clusterplot(cfg, within_subj_stat);
-
+%==========================================================================
 %Error using ft_clusterplot (line 155)
 %this only works if either frequency or time is a singleton dimension
 %here the similar problem described https://mailman.science.ru.nl/pipermail/fieldtrip/2016-July/010752.html
+%==========================================================================
 cfg  = [];
 cfg.avgoverfreq = 'yes';
 stat_avg_freq = ft_selectdata(cfg, within_subj_stat);
@@ -129,6 +130,5 @@ stat_avg_freq = ft_selectdata(cfg, within_subj_stat);
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
-cfg.zlim   = [-4 4];
 cfg.layout = 'neuromag306mag_helmet.mat';
 ft_clusterplot(cfg, stat_avg_freq);
