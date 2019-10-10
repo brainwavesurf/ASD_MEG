@@ -12,37 +12,58 @@ savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 
 %load subj list
-SUBJ = ['0076']; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0136'; '0137'; '0138'; '0139'; '0140'; '0141'; '0158'; '0159'; '0160'; '0161'; '0162'; '0163'; '0164'; '0178'; '0179'; '0253'; '0254'; '0255'; '0256'; '0257'; '0259'; '0273'; '0274'; '0275'; '0276'; '0277'; '0346'; '0347'; '0348'; '0350'; '0351'; '0357'; '0358'; '0378'; '0380'; '0381'; '0382'; '0383'; '0384']; 
+SUBJ = ['0076'; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0136'; '0137'; '0138'; '0139'; '0140'; '0141'; '0158'; '0159'; '0160'; '0161'; '0162'; '0163'; '0164'; '0178'; '0179'; '0253'; '0254'; '0255'; '0256'; '0257'; '0259'; '0273'; '0274'; '0275'; '0276'; '0277'; '0346'; '0347'; '0348'; '0350'; '0351'; '0357'; '0358'; '0378'; '0380'; '0381'; '0382'; '0383'; '0384']; 
 %load posterior sensors list
 post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
              'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
-    
+
 %loop for all subjects
 for s=1: size (SUBJ,1)
-    subj = SUBJ (s,:); 
-    freq_all{s} = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
     
-    freqFast_grad{s}  = freq_all{s}.fft_fast_grad;
-    freqSlow_grad{s}  = freq_all{s}.fft_slow_grad;
+    subj = SUBJ (s,:); 
+    savemegto = strcat(savepath, subj);
+    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
+    
+    %load preprocessed epochs
+    epo = load(strcat(epofolder, subj, '_preproc_epochs.mat'));
+    
+    %select grad 
+    cfg = [];
+    cfg.channel = 'MEGGRAD';
+    epo_fast_grad = ft_selectdata(cfg, epo.fast_epochs);
+    epo_slow_grad = ft_selectdata(cfg, epo.slow_epochs);
+    
+    cfg = [];
+    cfg.method       = 'mtmfft';
+    cfg.output       = 'pow'; 
+    cfg.taper        = 'hanning'; %Hanning taper
+    cfg.keeptrials   = 'yes';
+    cfg.foi          = [5:30];                 
+    cfg.toi          = [-0.8:0.05:0]; %intersimul
+    fft_fast_grad = ft_freqanalysis(cfg, epo_fast_grad);
+    fft_slow_grad = ft_freqanalysis(cfg, epo_slow_grad);
     
     cfg = [];
     cfg.channel = post_sens;
-    freqFast_postsens{s}  = ft_selectdata(cfg, freqFast_grad{s});
-    freqSlow_postsens{s}  = ft_selectdata(cfg, freqSlow_grad{s});
+    freqFast_postsens{s}  = ft_selectdata(cfg, fft_fast_grad);
+    freqSlow_postsens{s}  = ft_selectdata(cfg, fft_slow_grad);
     
-% label: {32×1 cell}
+%         label: {32×1 cell}
 %          freq: [1×26 double]
-%     powspctrm: [51×32×26 double]
-%     cumsumcnt: [51×1 double]
-%     cumtapcnt: [51×1 double]
+%     powspctrm: [82×32×26 double]
+%     cumsumcnt: [82×1 double]
+%     cumtapcnt: [82×1 double]
 %          grad: [1×1 struct]
 %           cfg: [1×1 struct]
 %        dimord: 'rpt_chan_freq'
 end
 
+%save stats
+filename = strcat(savepath, '1_results/', 'fft_freq_analysis.mat');
+save(filename, 'fft_fast_grad', 'fft_slow_grad');
+
 %do averaging over channels and trials. select interstimuli interval
 cfg = [];
-cfg.latency = [-0.8 0];
 cfg.avgoverchan = 'yes';
 cfg.avgoverrpt ='yes';
 fast_avg_grad = ft_selectdata(cfg, freqFast_postsens{s});
@@ -69,4 +90,4 @@ hold on
 plot(fast_avg_grad.freq, log(fast_avg_grad.powspctrm(1,:)), '-b'); 
 legend('slow', 'fast'); xlim([5 30]);
 
-saveas(figure(1),[savepath, '/1_results/', 'FFT_plot.jpeg']);
+saveas(figure(1),[savepath, '/1_results/', 'FFT_plot_prestim.jpeg']);
