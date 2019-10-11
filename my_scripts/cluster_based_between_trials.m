@@ -22,45 +22,23 @@ savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 SUBJ = ['0102'];
 
 for s=1: size (SUBJ,1)
-    close all
     subj = SUBJ (s,:); 
     savemegto = strcat(savepath, subj);
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
-    %% load group preceding events in order to select the epochs later on
-    load ([ savemegto, '/', subj, '_info.mat'])
+    %load preprocessed epochs
+    epo = load(strcat(epofolder, subj, '_preproc_epochs.mat'));
     
-    slow_ind = find(allinfo.prev_stim_type==2);
-    fast_ind = find(allinfo.prev_stim_type==8);
- 
-    %% Load unfiltered epochs and divide them according to preceding conditions
-    ep_fiff_file = strcat(epofolder, subj, '-noerror-lagcorrected-epo.fif')
-    hdr = ft_read_header(ep_fiff_file);
-    
-    cfg           = [];  
-    cfg.dataset   = ep_fiff_file;
-    cfg.channel   = {'MEGMAG'};
-    epochs        = ft_preprocessing(cfg);
-    
-    cfg           = [];
-    cfg.trials    = slow_ind;
-    slow_epochs   = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
-    
-    cfg.trials    = fast_ind;
-    fast_epochs   = ft_selectdata(cfg, epochs); %extraxt trials after fast stimuli
-    
-    %% Calculate the TFRs for the two experimental conditions (Fast and Slow) for each subject
-
+    %select grad and mag epochs separately for slow and fast conditions
     cfg = [];
-    cfg.output     = 'pow';
-    cfg.method     = 'mtmconvol';
-    cfg.taper      = 'hanning';
-    cfg.foi        = [5:20];
-    cfg.toi        = [-1:0.05:1.2];
-    cfg.t_ftimwin  = 3./cfg.foi; %3 cycles
-    cfg.keeptrials = 'yes';
-    freqFast = ft_freqanalysis(cfg, fast_epochs);
-    freqSlow = ft_freqanalysis(cfg, slow_epochs);
+    cfg.channel = 'MEGMAG';
+    epo_fast_mag = ft_selectdata(cfg, epo.fast_epochs);
+    epo_slow_mag = ft_selectdata(cfg, epo.slow_epochs);
+    
+    freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
+    
+    freqFast_mag  = freq_all.conv_fast_mag;
+    freqSlow_mag  = freq_all.conv_slow_mag;
     
     %% Do between trials stats
     cfg = [];
@@ -79,17 +57,17 @@ for s=1: size (SUBJ,1)
     cfg.numrandomization = 500;
     
     cfg_neighb.method    = 'distance';
-    cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, fast_epochs);
+    cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, epo_fast_mag);
 
-    design = zeros(1,size(freqSlow.powspctrm,1) + size(freqFast.powspctrm,1));
-    design(1,1:size(freqSlow.powspctrm,1)) = 1;
-    design(1,(size(freqSlow.powspctrm,1)+1):(size(freqSlow.powspctrm,1)+...
-    size(freqFast.powspctrm,1))) = 2;
+    design = zeros(1,size(freqSlow_mag.powspctrm,1) + size(freqFast_mag.powspctrm,1));
+    design(1,1:size(freqSlow_mag.powspctrm,1)) = 1;
+    design(1,(size(freqSlow_mag.powspctrm,1)+1):(size(freqSlow_mag.powspctrm,1)+...
+    size(freqFast_mag.powspctrm,1))) = 2;
     
     cfg.design           = design;
     cfg.ivar             = 1;
     
-    [stat] = ft_freqstatistics(cfg, freqSlow, freqFast);
+    [stat] = ft_freqstatistics(cfg, freqSlow_mag, freqFast_mag);
 
 % stat = 
 % 
@@ -117,8 +95,8 @@ for s=1: size (SUBJ,1)
     
     cfg = [];
     cfg.latency = [-0.8 0];
-    freqFast_prestim = ft_selectdata(cfg, freqFast);
-    freqSlow_prestim = ft_selectdata(cfg, freqSlow);
+    freqFast_prestim = ft_selectdata(cfg, freqFast_mag);
+    freqSlow_prestim = ft_selectdata(cfg, freqSlow_mag);
       
 % freqFast_prestim = struct with fields:
 %         label: {102×1 cell}
@@ -200,5 +178,3 @@ for s=1: size (SUBJ,1)
     filename = strcat(savepath, '1_results/', '_cluster_based_between_trails.mat');
     save(filename, 'stat', 'stat_avg_freq');
 end 
-
-
