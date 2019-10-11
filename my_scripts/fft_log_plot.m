@@ -29,33 +29,28 @@ for s=1: size (SUBJ,1)
     
     %select grad 
     cfg = [];
-    cfg.channel = 'MEGGRAD';
+    cfg.channel = post_sens;
+    cfg.latency = [-1.0 0.0];
     epo_fast_grad = ft_selectdata(cfg, epo.fast_epochs);
     epo_slow_grad = ft_selectdata(cfg, epo.slow_epochs);
     
+ 
     cfg = [];
     cfg.method       = 'mtmfft';
     cfg.output       = 'pow'; 
     cfg.taper        = 'hanning'; %Hanning taper
-    cfg.keeptrials   = 'yes';
-    cfg.foi          = [5:30];                 
-    cfg.toi          = [-0.8:0.05:0]; %intersimul
-    fft_fast_grad = ft_freqanalysis(cfg, epo_fast_grad);
-    fft_slow_grad = ft_freqanalysis(cfg, epo_slow_grad);
-    
-    cfg = [];
-    cfg.channel = post_sens;
-    freqFast_postsens{s}  = ft_selectdata(cfg, fft_fast_grad);
-    freqSlow_postsens{s}  = ft_selectdata(cfg, fft_slow_grad);
+    cfg.foilim       = [5 30];          
+    cfg.tapsmofrq    = 2;
+    fft_fast_grad{s} = ft_freqanalysis(cfg, epo_fast_grad);
+    fft_slow_grad{s} = ft_freqanalysis(cfg, epo_slow_grad);
+   
     
 %         label: {32×1 cell}
+%        dimord: 'chan_freq'
 %          freq: [1×26 double]
-%     powspctrm: [82×32×26 double]
-%     cumsumcnt: [82×1 double]
-%     cumtapcnt: [82×1 double]
+%     powspctrm: [32×26 double]
 %          grad: [1×1 struct]
 %           cfg: [1×1 struct]
-%        dimord: 'rpt_chan_freq'
 end
 
 %save stats
@@ -65,9 +60,8 @@ save(filename, 'fft_fast_grad', 'fft_slow_grad');
 %do averaging over channels and trials. select interstimuli interval
 cfg = [];
 cfg.avgoverchan = 'yes';
-cfg.avgoverrpt ='yes';
-fast_avg_grad = ft_selectdata(cfg, freqFast_postsens{s});
-slow_avg_grad = ft_selectdata(cfg, freqSlow_postsens{s});
+fast_avg_grad = ft_selectdata(cfg, fft_fast_grad{:});
+slow_avg_grad = ft_selectdata(cfg, fft_slow_grad{:});
 
 %         label: {'mean(MEG1732, MEG1733, MEG1912, MEG1913, MEG1922, MEG1923, MEG1932, MEG1933, MEG1942, MEG1943, MEG2012, MEG2013, MEG2022, MEG2023, MEG2032, MEG2033, MEG2042, MEG2043, MEG2112, MEG2113, MEG2122, MEG2123, MEG2312, MEG2313, MEG2322, MEG2323, MEG2332, MEG2333, MEG2342, MEG2343, MEG2512, MEG2513)'}
 %          freq: [1×26 double]
@@ -82,12 +76,12 @@ subplot(2,1,1)
 plot(slow_avg_grad.freq, slow_avg_grad.powspctrm(1,:), '-g'); title('FFT power, avg posterior sens for all subj')
 hold on
 plot(fast_avg_grad.freq, fast_avg_grad.powspctrm(1,:), '-b'); 
-legend('slow', 'fast'); xlim([5 30]);
+legend('slow', 'fast'); xlim([5,30]);
 
 subplot(2,1,2)
 plot(slow_avg_grad.freq, log(slow_avg_grad.powspctrm(1,:)), '-g'); title('FFT log power, avg posterior sens for all subj')
 hold on
 plot(fast_avg_grad.freq, log(fast_avg_grad.powspctrm(1,:)), '-b'); 
-legend('slow', 'fast'); xlim([5 30]);
+legend('slow', 'fast'); xlim([5,30]);
 
-saveas(figure(1),[savepath, '/1_results/', 'FFT_plot_prestim.jpeg']);
+saveas(figure(1),[savepath, '/1_results/', 'FFT_prestim.jpeg']);
