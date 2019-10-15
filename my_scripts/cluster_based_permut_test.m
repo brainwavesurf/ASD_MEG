@@ -21,18 +21,6 @@ SUBJ = ['0076'; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0136'; 
 for s=1: size (SUBJ,1)
     
     subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj);
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
-    
-    %load preprocessed epochs
-    epo = load(strcat(epofolder, subj, '_preproc_epochs.mat'));
-    
-    %select mag epochs separately for slow and fast conditions
-    cfg = [];
-    cfg.channel = 'MEGMAG';
-    epo_fast_mag = ft_selectdata(cfg, epo.fast_epochs);
-    epo_slow_mag = ft_selectdata(cfg, epo.slow_epochs);
-    
     %load data after freqanalysis 
     freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
     %after mtmconvol
@@ -75,44 +63,31 @@ cfg.design   = design;
 cfg.uvar     = 1;
 cfg.ivar     = 2;
 
-[within_subj_stat] = ft_freqstatistics(cfg, freqSlow_mag{:}, freqFast_mag{:})
+[within_subj_stat] = ft_freqstatistics(cfg, freqFast_mag{:}, freqSlow_mag{:})
 stat_value = within_subj_stat.stat;
 
 %save stats
 filename = strcat(savepath, '1_results/', 'within_subjs_stat.mat');
 save(filename, 'within_subj_stat');
 
-filename = strcat(savepath, '1_results/', 'stat_value.mat');
-save(filename, 'stat_value');
-   
 %plot
 figure(1)
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
+cfg.highlightcolorpos = [0 0.69 0.94];
+cfg.highlightcolorneg = [0.52 0.12 0];
 cfg.layout = 'neuromag306mag_helmet.mat';
 ft_clusterplot(cfg, within_subj_stat);
 
 %plot 
-saveas(figure(1),[savepath, '/1_results/', 'cluster-based-permut-test.jpeg']);
+saveas(figure(2),[savepath, '/1_results/', 'cluster-based-permut-test.jpeg']);
 
 %% the same for gradiometers
 
 for s=1: size (SUBJ,1)
     
     subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj);
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
-    
-    %load preprocessed epochs
-    epo = load(strcat(epofolder, subj, '_preproc_epochs.mat'));
-    
-    %select mag epochs separately for slow and fast conditions
-    cfg = [];
-    cfg.channel = 'MEGGRAD';
-    epo_fast_grad = ft_selectdata(cfg, epo.fast_epochs);
-    epo_slow_grad = ft_selectdata(cfg, epo.slow_epochs);
-    
     %load data after freqanalysis 
     freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
     %after mtmconvol
@@ -155,7 +130,7 @@ cfg.design   = design;
 cfg.uvar     = 1;
 cfg.ivar     = 2;
 
-[within_subj_stat_grad] = ft_freqstatistics(cfg, freqSlow_grad{:}, freqFast_grad{:})
+[within_subj_stat_grad] = ft_freqstatistics(cfg, freqFast_grad{:}, freqSlow_grad{:})
 stat_value = within_subj_stat.stat;
 
 %save stats
