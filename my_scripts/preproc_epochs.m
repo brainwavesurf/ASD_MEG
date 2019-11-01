@@ -24,6 +24,7 @@ for s=1: size (SUBJ,1)
     load ([ savemegto, '/', subj, '_info.mat'])
     
     slow_ind = find(allinfo.prev_stim_type==2);
+    medium_ind = find(allinfo.prev_stim_type==4);
     fast_ind = find(allinfo.prev_stim_type==8);
  
     %% Load unfiltered epochs and divide them according to preceding conditions
