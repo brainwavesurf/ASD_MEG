@@ -47,17 +47,18 @@ for s=1: size (SUBJ,1)
     hdrraw = ft_read_header(fiff_file);
     
     % load info about events
-    load strcat(realdatapath, subj, '/ICA_nonotch_crop/', subj, '_events.mat');
-    load(ev_name);
+    load(strcat(realdatapath, subj, '/ICA_nonotch_crop/', subj, '_clean_events.mat'));
     
+    first= round(cast(hdrraw.orig.raw.first_samp, 'double'));
+    events(:,1) =  events(:,1) - first;
     % define trials for interval of interest [-0.8, 1]
     begin_tr = -0.8* hdrraw.Fs; %fs=500
-    end_tr = 1.0* hdrraw.Fs;
+    end_tr = 0* hdrraw.Fs;
     trl=[]; %start, end and offset (interval before the event) 
     for i=1:size (events,1)
         trl(i, 1) = (events(i,1)+begin_tr) ; 
         trl(i, 2) = (events(i,1)+end_tr) ; 
-        trl(i, 3) = -1.0*hdrraw.Fs ; % offset
+        trl(i, 3) = 0*hdrraw.Fs ; % offset
         trl(i, 4) = events(i,3); % stimulus_value;
     end
 
