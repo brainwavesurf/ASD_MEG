@@ -21,6 +21,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0380'; '0381'; '0382'; '0383'];  
         
 SUBJ = [SUBJ_NT; SUBJ_ASD];
+SUBJ = ['0106'];
 
 for s=1: size (SUBJ,1)
     close all
@@ -28,7 +29,9 @@ for s=1: size (SUBJ,1)
     savemegto = strcat(savepath, subj);
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
+    %load alpha epochs
     load(strcat(epofolder, subj, '_preproc_alpha_epochs.mat'));
+    
     cfg = [];
     data = ft_appenddata(cfg, slow_alpha_epochs, fast_alpha_epochs); %append two structural data
     
@@ -47,6 +50,7 @@ for s=1: size (SUBJ,1)
     
     % The csp method implements the common-spatial patterns method
     cfg = [];
+    cfg.channel = 'MEGMAG';
     cfg.method = 'csp';
     cfg.csp.classlabels = [slow_label; fast_label]; % vector that assigns a trial to class 1 or 2
     cfg.csp.numfilters  = 10; % the number of spatial filters to use
@@ -55,15 +59,20 @@ for s=1: size (SUBJ,1)
 %        fsample: 500
 %           time: {1×116 cell}
 %          trial: {1×116 cell}
-%           topo: [306×10 double]
-%       unmixing: [10×306 double]
+%           topo: [102×10 double]
+%       unmixing: [10×102 double]
 %          label: {10×1 cell}
-%      topolabel: {306×1 cell}
+%      topolabel: {102×1 cell}
 %           grad: [1×1 struct]
 %     sampleinfo: [116×2 double]
 %      trialinfo: [116×1 double]
 %            cfg: [1×1 struct]
+
+    filename = strcat(epofolder, subj, '_CSP_alpha_mag.mat');
+    save(filename, 'comp');
 end
+
+
 
 figure(1)
 cfg = [];
@@ -71,4 +80,4 @@ cfg.component = 1:10;       % the component(s) that should be plotted
 cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
 cfg.comment   = 'no';
 ft_topoplotIC(cfg, comp)
-saveas(figure(1),[savepath, '/1_results/', 'CSP_components.jpeg']);
+saveas(figure(1),[savepath, '/1_results/', 'CSP_components_10mag.jpeg']);
