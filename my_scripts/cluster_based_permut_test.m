@@ -2,6 +2,9 @@
 %(http://www.fieldtriptoolbox.org/tutorial/cluster_permutation_timelock/#within-subjects-experiments)
 %for magnetometers
 %for gradiometers
+%control, ASD and combined
+%[-0.7 0] to avoid NAN stat
+% avgoverfreq alpha [8 12]
 %%
 clear all;
 close all;
@@ -70,7 +73,8 @@ end
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.50;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -108,7 +112,8 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.50;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -146,7 +151,8 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.5;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -183,7 +189,7 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
-cfg.layout = 'neuromag306mag_helmet.mat';
+cfg.layout = 'neuromag306mag.lay';
 ft_clusterplot(cfg, within_subj_stat_NT); 
 
 ft_clusterplot(cfg, within_subj_stat_ASD); 
@@ -232,7 +238,8 @@ end
 cfg = [];
 cfg.channel          = {'MEGGRAD'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.5;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -269,7 +276,8 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.channel          = {'MEGGRAD'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.5;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -306,7 +314,8 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.channel          = {'MEGGRAD'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = 10.5;
+cfg.frequency        = [8 12];
+cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
 cfg.correctm         = 'cluster';
@@ -341,7 +350,7 @@ cfg.ivar     = 2;
 
 
 %save stats
-filename = strcat(savepath, '1_results/', 'within_subjs_stat.mat');
+filename = strcat(savepath, '1_results/', 'within_subjs_stat_avg_freq.mat');
 save(filename, 'within_subj_stat', 'within_subj_stat_NT', 'within_subj_stat_ASD', 'within_subj_stat_grad', 'within_subj_stat_grad_NT', 'within_subj_stat_grad_ASD');
 
    
@@ -349,11 +358,11 @@ save(filename, 'within_subj_stat', 'within_subj_stat_NT', 'within_subj_stat_ASD'
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
-cfg.layout = 'neuromag306planar_helmet.mat';%for grad
+cfg.layout = 'neuromag306planar.lay';%for grad
 ft_clusterplot(cfg, within_subj_stat_grad);
 ft_clusterplot(cfg, within_subj_stat_grad_NT);
 ft_clusterplot(cfg, within_subj_stat_grad_ASD);
 %plot 
-saveas(figure(1),[savepath, '/1_results/', 'cluster_based_grad_combined.jpeg']);
+saveas(figure(2),[savepath, '/1_results/', 'new_cluster_based_grad_combined.jpeg']);
 saveas(figure(2),[savepath, '/1_results/', 'cluster_based_grad_control.jpeg']);
 saveas(figure(3),[savepath, '/1_results/', 'cluster_based_grad_ASD.jpeg']);
