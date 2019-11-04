@@ -103,15 +103,15 @@ cfg.zlim = [-4 4]; % T-values
 cfg.alpha = 0.05;
 cfg.parameter = 'stat';
 cfg.channel = channels; 
-cfg.layout = layout_mat;
+cfg.layout = layout_lay;
 cfg.highlightcolorpos =  [1 0 0]; %color of highlight marker for positive clusters (default = [0 0 0])
 ft_clusterplot(cfg, within_subj_stat_mag);
 %ft_clusterplot(cfg, within_subj_stat_grad);
 colorbar
 
- for i = 3:4
+ for i = 1:2
        
-   saveas(figure(i),[savepath, '1_results/', num2str(i), '_wvlts_freq_analysis_mag.jpeg']);
+   saveas(figure(i),[savepath, '1_results/', num2str(i), '_wvlts_freq_analysis_mag_round.jpeg']);
    %saveas(figure(i),[savepath, '1_results/', num2str(i), '_wvlts_freq_analysis_grad.jpeg']);
    end
 
