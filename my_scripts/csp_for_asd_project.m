@@ -1,4 +1,4 @@
-% DATA from ONE PARTICCIPANT #0106 IN 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
+% DATA from ONE SUBJ #0106 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
 % ntrial_slow = 59 trials, ntrialslow = 57           
 
 clear all;
