@@ -1,10 +1,5 @@
-% DATA from ONE PARTICCIPANT IN 2 conditions and in an epoch of 2000 sampling points, srate = 500Hz, MEGMAG data
-% ntrial = 100 trials
-%   data1_tot      102x2000x100            39072000  double              
-%   data2_tot      102x2000x100            39072000  double              
-
- 
-%initalise before cov1 cov2 matrixes to NaNs etc, this is just a section of the relevant code
+% DATA from ONE PARTICCIPANT #0106 IN 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
+% ntrial_slow = 59 trials, ntrialslow = 57           
 
 clear all;
 close all;
