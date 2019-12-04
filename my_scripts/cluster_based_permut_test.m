@@ -32,8 +32,10 @@ SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0136';...
         
 SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...  
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
-            '0276'; '0346'; '0347'; '0351'; '0357'; '0358';...
-            '0380'; '0381'; '0382'; '0383'];  
+            '0276'; '0346'; '0347'; '0351'; '0358';...
+            '0380'; '0381'; '0382'; '0383']; 
+
+% without SUBJ = ['0357'];
         
 SUBJ_ALL = [SUBJ_ASD; SUBJ_NT];
 %% load freqanalysis data for all groups
@@ -43,8 +45,9 @@ for s=1:size(SUBJ_ALL,1)
     %load data after freqanalysis 
     freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
     %after mtmconvol
-    freqFast_mag{s}  = freq_all.wvlts_fast_mag;
-    freqSlow_mag{s}  = freq_all.wvlts_slow_mag;
+    freqFast_mag{s} = freq_all.wvlts_fast_mag;
+    freqSlow_mag{s} = freq_all.wvlts_slow_mag;
+    
 end
 
 %% load freqanalysis data for control group
@@ -56,6 +59,7 @@ for s=1:size(SUBJ_NT,1)
     %after mtmconvol
     freqFast_mag_NT{s}  = freq_all.wvlts_fast_mag;
     freqSlow_mag_NT{s}  = freq_all.wvlts_slow_mag;
+
 end
 
 %% load freqanalysis data for asd group
@@ -67,6 +71,7 @@ for s=1:size(SUBJ_ASD,1)
     %after mtmconvol
     freqFast_mag_ASD{s}  = freq_all.wvlts_fast_mag;
     freqSlow_mag_ASD{s}  = freq_all.wvlts_slow_mag;
+
 end
 %% do cluster-based permutation test for ALL
 
@@ -184,19 +189,18 @@ cfg.uvar     = 1;
 cfg.ivar     = 2;
 [within_subj_stat_ASD] = ft_freqstatistics(cfg, freqFast_mag_ASD{:}, freqSlow_mag_ASD{:})
 
-
-%plot
+%% plot
 cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
 cfg.layout = 'neuromag306mag.lay';
 
-ft_clusterplot(cfg, within_subj_stat); 
-ft_clusterplot(cfg, within_subj_stat_NT); 
+ft_clusterplot(cfg, within_subj_stat); %15 clusters
+ft_clusterplot(cfg, within_subj_stat_NT); %7 clusters
 ft_clusterplot(cfg, within_subj_stat_ASD); %nothing to plot
 
 %plot 
-saveas(figure(3),[savepath, '/1_results/', 'cluster_based_control_avg10_13.jpeg']);
+saveas(figure(2),[savepath, '/1_results/', 'cluster_based_control_avg10_13.jpeg']);
 saveas(figure(1),[savepath, '/1_results/', 'cluster_based_combined_avg10_13.jpeg']);
 
 %% the same for gradiometers
@@ -349,7 +353,7 @@ cfg.ivar     = 2;
 
 
 %save stats
-filename = strcat(savepath, '1_results/', 'within_subjs_stat_avg_freq10_13.mat');
+filename = strcat(savepath, '1_results/', 'cluster_based_stat.mat');
 save(filename, 'within_subj_stat', 'within_subj_stat_NT', 'within_subj_stat_ASD', 'within_subj_stat_grad', 'within_subj_stat_grad_NT', 'within_subj_stat_grad_ASD');
 
    
@@ -358,10 +362,10 @@ cfg = [];
 cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
 cfg.layout = 'neuromag306planar.lay';%for grad
-ft_clusterplot(cfg, within_subj_stat_grad);
-ft_clusterplot(cfg, within_subj_stat_grad_NT);
-ft_clusterplot(cfg, within_subj_stat_grad_ASD);
+ft_clusterplot(cfg, within_subj_stat_grad); %15 clusters
+ft_clusterplot(cfg, within_subj_stat_grad_NT); %6 clusters
+ft_clusterplot(cfg, within_subj_stat_grad_ASD); % 14 clusters
 %plot 
-saveas(figure(4),[savepath, '/1_results/', 'cluster_based_grad_combined_avg10_13.jpeg']);
-saveas(figure(1),[savepath, '/1_results/', 'cluster_based_grad_control_avg10_13.jpeg']);
+saveas(figure(1),[savepath, '/1_results/', 'cluster_based_grad_combined_avg10_13.jpeg']);
+saveas(figure(2),[savepath, '/1_results/', 'cluster_based_grad_control_avg10_13.jpeg']);
 saveas(figure(3),[savepath, '/1_results/', 'cluster_based_grad_ASD_avg10_13.jpeg']);
