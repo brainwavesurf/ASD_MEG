@@ -16,9 +16,16 @@ realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 
 %%
-%add list of subjects:
-SUBJ = ['0076'; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0136'; '0137'; '0138'; '0139'; '0140'; '0141'; '0158'; '0159'; '0160'; '0161'; '0162'; '0163'; '0164'; '0178'; '0179'; '0253'; '0254'; '0255'; '0256'; '0257'; '0259'; '0273'; '0274'; '0275'; '0276'; '0277'; '0346'; '0347'; '0348'; '0350'; '0351'; '0357'; '0358'; '0378'; '0380'; '0381'; '0382'; '0383'; '0384']; 
-
+     
+SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0135'; '0136';...  
+            '0137'; '0138'; '0140'; '0158'; '0162'; '0163'; '0178';...
+            '0179'; '0255'; '0257'; '0348'; '0378'; '0379'; '0384']; 
+        
+SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...  
+            '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
+            '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
+            '0380'; '0381'; '0382'; '0383'];  
+%without '0357';
 %% loop for all subjects
 for s=1: size (SUBJ,1)
     
@@ -58,10 +65,10 @@ for s=1: size (SUBJ,1)
 
     cfg = [];
     cfg.method       = 'wavelet';
-    cfg.foi          = [5:30];                 
+    cfg.foilim       = [5 30];                 
     cfg.toi          = [-1:0.05:1.2];
     cfg.width        = 3;
-    cfg.pad          = 'nextpow2';
+  
     wvlts_fast_mag  = ft_freqanalysis(cfg, epo_fast_mag);
     wvlts_slow_mag  = ft_freqanalysis(cfg, epo_slow_mag);
     wvlts_fast_grad = ft_freqanalysis(cfg, epo_fast_grad);
@@ -83,20 +90,21 @@ for s=1: size (SUBJ,1)
     fft_slow_grad = ft_freqanalysis(cfg, epo_slow_grad);
     
     %save freq analysis results
-    filename = strcat(savepath, subj, '/', subj, '_freqanalysis.mat');
+    filename = strcat(savepath, subj, '/', subj, 'wvlts_freqanalysis.mat');
     save (filename, 'conv_fast_mag', 'conv_slow_mag', 'conv_fast_grad', 'conv_slow_grad', ...
         'wvlts_fast_mag', 'wvlts_slow_mag', 'wvlts_fast_grad', 'wvlts_slow_grad', ...
         'fft_fast_mag', 'fft_slow_mag', 'fft_fast_grad', 'fft_slow_grad');
+
     end
     
    for s=1: size (SUBJ,1)
        
    subj = SUBJ (s,:);    
-   freq_analysis{s} = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
+   freq_analysis{s} = load(strcat(savepath, subj, '/', subj, 'wvlts_freqanalysis.mat'));
    
    end
    
    %save stats
-   filename = strcat(savepath, '1_results/', 'freq_analysis.mat');
-   save(filename, 'freq_analysis');
+   filename = strcat(savepath, '1_results/', 'wvlts_freq_analysis.mat');
+   save(filename, 'freq_analysis', '-v7.3');
    
