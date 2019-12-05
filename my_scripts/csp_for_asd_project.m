@@ -18,12 +18,12 @@ SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0135'; '0136';...
         
 SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...  
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
-            '0276'; '0346'; '0347'; '0349'; '0351'; '0357'; '0358';...
+            '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
-        
+%without '0357';
 SUBJ = [SUBJ_NT; SUBJ_ASD];
 
-SUBJ = ['0106'];
+SUBJ = ['0107'];
 
 for s=1: size (SUBJ,1)
     close all
@@ -32,7 +32,7 @@ for s=1: size (SUBJ,1)
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
     %load alpha epochs
-    load(strcat(epofolder, subj, '_preproc_alpha_epochs_10_13.mat'));
+    load(strcat(epofolder, subj, '_preproc_alpha_epochs.mat'));
 
     cfg = [];
     cfg.channel = 'MEGMAG';
@@ -80,6 +80,11 @@ for s=1: size (SUBJ,1)
 
     Xcsp_slow = nan(ntrial_slow, sampoints_slow, size(W1,2)); %59x401x6
     Xcsp_fast = nan(ntrial_fast, sampoints_fast, size(W1,2)); %57x401x6
+    
+    %% pattern maximizing the differences between cov1/cov2
+
+    Pattern_ICcsp1_vs2 = transpose(A1); %[nCSP x nMEG] 102x6
+
 
     for j = 1:ntrial_slow   
     Xcsp_slow(j,:,:)=transpose(squeeze(data_slow_tot(:,:,j)))*W1; % ntrial x nsampl x 6 = [ntrial x nsampl x nIC] * [nIC x 6] 
@@ -89,12 +94,20 @@ for s=1: size (SUBJ,1)
     Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 6 x nsampl x ntrial = [6 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
-    %for each Xcsp, find MEG pattern
-    Pattern = mixing * transpose(A1); %102 x 6: [nMAG x nIC] * [nMAG x nCSP]
+    filename = strcat(epofolder, subj, '_csp_analysis.mat');
+    save(filename, 'mixing', 'W1', 'A1', 'Pattern_ICcsp1_vs2', 'Xcsp_fast', 'Xcsp_slow');
+end
+
+
+for s=1: size (SUBJ,1)
+    close all
+    subj = SUBJ (s,:); 
+    savemegto = strcat(savepath, subj);
+    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
     %% calculate csp by fieldtrip for plot
     %load alpha epochs
-    load(strcat(epofolder, subj, '_preproc_alpha_epochs_10_13.mat'));
+    load(strcat(epofolder, subj, '_preproc_alpha_epochs.mat'));
     
     cfg = [];
     data = ft_appenddata(cfg, slow_alpha_epochs, fast_alpha_epochs); %append two structural data
@@ -102,7 +115,6 @@ for s=1: size (SUBJ,1)
     % prepare vectors that assigns slow and fast trials to class 1 or 2
     slow_label = zeros(size(slow_alpha_epochs.trialinfo)); slow_label(:) = 1;
     fast_label = zeros(size(fast_alpha_epochs.trialinfo)); fast_label(:) = 2;
-    
     
     % The csp method implements the common-spatial patterns method
     cfg = [];
@@ -115,38 +127,16 @@ for s=1: size (SUBJ,1)
     filename = strcat(epofolder, subj, '_csp_ftcompanalysis.mat');
     save(filename, 'comp');
     
-%     % replace topo by pattern and unmixing by A1
-%     cfg = [];   
-%     comp.topo = Pattern;
-%     comp.unmixing = A1;
-%     cfg.component = 1:6; % the component(s) that should be plotted
-%     cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
-%     cfg.comment   = 'no';
-%     ft_topoplotIC(cfg, comp)
-% 
-%     saveas(figure(1),[savepath, '/1_results/', '0106_ASD_6_csp_comp_mag_.jpeg']);
     
-    %% time series after csp for 6 patterns 
-    for j = 1:ntrial_slow   
-        Xcsp_timeseries_slow(:,:,j) = Pattern*transpose(squeeze(Xcsp_slow(j,:,:))); % nMAG x nsampl x ntrial =  [nMAG x 6] * [6 x nsampl x ntrial]
-        data_slow.trial{j} = Xcsp_timeseries_slow(:,:,j); 
-    end  
+    % replace topo by pattern and unmixing by A1
+    cfg = [];   
+    comp.topo = Pattern;
+    comp.unmixing = A1;
+    cfg.component = 1:6; % the component(s) that should be plotted
+    cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
+    cfg.comment   = 'no';
+    ft_topoplotIC(cfg, comp)
 
-    for j = 1:ntrial_fast   
-        Xcsp_timeseries_fast(:,:,j) = Pattern*transpose(squeeze(Xcsp_fast(j,:,:))); % nMAG x nsampl x ntrial =  [nMAG x 6] * [6 x nsampl x ntrial]
-        data_fast.trial{j} = Xcsp_timeseries_fast(:,:,j);
-    end
-
-    filename = strcat(epofolder, subj, '_csp_analysis.mat');
-    save(filename, 'mixing', 'W1', 'A1', 'Pattern', 'Xcsp_timeseries_slow', 'Xcsp_timeseries_fast', 'Xcsp_fast', 'Xcsp_slow');
-%     cfg = [];
-%     cgf.channel = 'megmag';
-%     cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
-%     figure(2)
-%     ft_topoplotTFR(cfg, data_slow)
-%     figure(3)
-%     ft_topoplotTFR(cfg, data_fast)
-%     
-%     saveas(figure(2),[savepath, '/1_results/', '0106_csp_timeseries_mag_slow.jpeg']);
-%     saveas(figure(3),[savepath, '/1_results/', '0106_csp_timeseries_mag_fast.jpeg']);
+    saveas(figure(1),[epofolder, subj, 'csp_comp_mag.jpeg']);
+    
 end
