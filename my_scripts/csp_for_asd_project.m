@@ -98,45 +98,16 @@ for s=1: size (SUBJ,1)
     save(filename, 'mixing', 'W1', 'A1', 'Pattern_ICcsp1_vs2', 'Xcsp_fast', 'Xcsp_slow');
 end
 
-
-for s=1: size (SUBJ,1)
-    close all
-    subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj);
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
-    
-    %% calculate csp by fieldtrip for plot
-    %load alpha epochs
-    load(strcat(epofolder, subj, '_preproc_alpha_epochs.mat'));
-    
-    cfg = [];
-    data = ft_appenddata(cfg, slow_alpha_epochs, fast_alpha_epochs); %append two structural data
-    
-    % prepare vectors that assigns slow and fast trials to class 1 or 2
-    slow_label = zeros(size(slow_alpha_epochs.trialinfo)); slow_label(:) = 1;
-    fast_label = zeros(size(fast_alpha_epochs.trialinfo)); fast_label(:) = 2;
-    
-    % The csp method implements the common-spatial patterns method
-    cfg = [];
-    cfg.channel = 'MEGMAG';
-    cfg.method = 'csp';
-    cfg.csp.classlabels = [slow_label; fast_label]; % vector that assigns a trial to class 1 or 2
-    cfg.csp.numfilters  = 6; % the number of spatial filters to use
-    [comp] = ft_componentanalysis(cfg, data);
-    
-    filename = strcat(epofolder, subj, '_csp_ftcompanalysis.mat');
-    save(filename, 'comp');
-    
-    
-    % replace topo by pattern and unmixing by A1
-    cfg = [];   
-    comp.topo = Pattern;
-    comp.unmixing = A1;
-    cfg.component = 1:6; % the component(s) that should be plotted
-    cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
-    cfg.comment   = 'no';
-    ft_topoplotIC(cfg, comp)
-
-    saveas(figure(1),[epofolder, subj, 'csp_comp_mag.jpeg']);
-    
+for i = 1:6
+    figure(1)
+    subplot(2,3,i)
+    plot(Xcsp_fast(1,:,i), 'r')
+    hold on
+    plot(Xcsp_slow(1,:,i), 'b')
+    legend('fast','slow')
+    xlim([0 401])
+    title(['compoment', num2str(i)])
 end
+
+filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
+saveas(figure(1), filename);
