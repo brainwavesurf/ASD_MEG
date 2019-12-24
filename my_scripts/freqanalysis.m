@@ -26,6 +26,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
 %without '0357';
+SUBJ = [SUBJ_ASD; SUBJ_NT];
 %% loop for all subjects
 for s=1: size (SUBJ,1)
     
@@ -90,7 +91,7 @@ for s=1: size (SUBJ,1)
     fft_slow_grad = ft_freqanalysis(cfg, epo_slow_grad);
     
     %save freq analysis results
-    filename = strcat(savepath, subj, '/', subj, 'wvlts_freqanalysis.mat');
+    filename = strcat(savepath, subj, '/', subj, '_freqanalysis.mat');
     save (filename, 'conv_fast_mag', 'conv_slow_mag', 'conv_fast_grad', 'conv_slow_grad', ...
         'wvlts_fast_mag', 'wvlts_slow_mag', 'wvlts_fast_grad', 'wvlts_slow_grad', ...
         'fft_fast_mag', 'fft_slow_mag', 'fft_fast_grad', 'fft_slow_grad');
@@ -100,11 +101,11 @@ for s=1: size (SUBJ,1)
    for s=1: size (SUBJ,1)
        
    subj = SUBJ (s,:);    
-   freq_analysis{s} = load(strcat(savepath, subj, '/', subj, 'wvlts_freqanalysis.mat'));
+   freq_analysis{s} = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
    
    end
    
    %save stats
-   filename = strcat(savepath, '1_results/', 'wvlts_freq_analysis.mat');
+   filename = strcat(savepath, '1_results/', 'freq_analysis.mat');
    save(filename, 'freq_analysis', '-v7.3');
    
