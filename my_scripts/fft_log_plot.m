@@ -1,5 +1,6 @@
 %plot log power after fft for all subjects individually
 %in fast and slow conditions for grad and mag
+%calculate coefficients for logarithmic fit and substract it from data
 
 clear all;
 close all;
@@ -8,6 +9,7 @@ fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(path, fieldtripfolder)
 ft_defaults;
 path('/home/a_shishkina/fieldtrip/external/mne/', path);
+path('/home/a_shishkina/externals/', path);
 
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
@@ -65,63 +67,74 @@ for s=1: size (SUBJ,1)
     filename = strcat(savepath, subj, '/', subj, '_fft_freq_analysis.mat');
     save(filename, 'fft_fast_grad', 'fft_slow_grad', 'fft_fast_mag', 'fft_slow_mag');
     
-    %plot figures
+    %calculate coefficients for logarithmic fit 
+    [slope1, intersep1] = logfit(fft_slow_grad{s}.freq, log(fft_slow_grad{s}.powspctrm(1,:)), 'logx');
+    [slope2, intersep2] = logfit(fft_fast_grad{s}.freq, log(fft_fast_grad{s}.powspctrm(1,:)), 'logx');
+    [slope3, intersep3] = logfit(fft_slow_mag{s}.freq, log(fft_slow_mag{s}.powspctrm(1,:)), 'logx');
+    [slope4, intersep4] = logfit(fft_fast_mag{s}.freq, log(fft_fast_mag{s}.powspctrm(1,:)), 'logx');
+    
+    %plot figures for log power with linear trend 
+    %for grad
     figure(1)
     subplot(2,1,1)
-    plot(fft_slow_grad{s}.freq, fft_slow_grad{s}.powspctrm(1,:), '-b'); title([subj, ', FFT power, grad'])
+    plot(fft_slow_grad{s}.freq, log(fft_slow_grad{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT power, grad'])
     hold on
-    plot(fft_fast_grad{s}.freq, fft_fast_grad{s}.powspctrm(1,:), '-r'); 
-    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('Power (\mu V^2)');
+    plot(intersep1 + slope1*log10(fft_fast_grad{s}.freq),'k--')
+    legend('slow', 'lin trend'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log power');
     hold off 
     
     subplot(2,1,2)
-    plot(fft_slow_grad{s}.freq, log(fft_slow_grad{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT log power, grad'])
+    plot(fft_fast_grad{s}.freq, log(fft_fast_grad{s}.powspctrm(1,:)), '-r');
     hold on
-    plot(fft_fast_grad{s}.freq, log(fft_fast_grad{s}.powspctrm(1,:)), '-r'); 
-    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log Power (\mu V^2)');
-    hold off
+    plot(intersep2 + slope2*log10(fft_slow_grad{s}.freq),'k--')
+    legend('fast', 'lin trend'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log power');
+    hold off 
     
+    %for mag
     figure(2)
     subplot(2,1,1)
-    plot(fft_slow_mag{s}.freq, fft_slow_mag{s}.powspctrm(1,:), '-b'); title([subj, ', FFT power, mag'])
+    plot(fft_slow_mag{s}.freq, log(fft_slow_mag{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT power, mag'])
     hold on
-    plot(fft_fast_mag{s}.freq, fft_fast_mag{s}.powspctrm(1,:), '-r'); 
-    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('Power (\mu V^2)');
-    hold off
-
+    plot(intersep3 + slope3*log10(fft_fast_mag{s}.freq),'k--')
+    legend('slow', 'lin trend'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log power');
+    hold off 
+    
     subplot(2,1,2)
-    plot(fft_slow_mag{s}.freq, log(fft_slow_mag{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT log power, mag'])
+    plot(fft_fast_mag{s}.freq, log(fft_fast_mag{s}.powspctrm(1,:)), '-r');
     hold on
-    plot(fft_fast_mag{s}.freq, log(fft_fast_mag{s}.powspctrm(1,:)), '-r'); 
-    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log Power (\mu V^2)');
+    plot(intersep4 + slope4*log10(fft_slow_mag{s}.freq),'k--')
+    legend('fast', 'lin trend'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log power');
+    hold off 
+    
+    %name linear trend to use for plot 
+    lintrend_slow_grad = intersep1 + slope1*log10(fft_slow_grad{s}.freq);
+    lintrend_fast_grad = intersep2 + slope2*log10(fft_fast_grad{s}.freq);
+    lintrend_slow_mag = intersep3 + slope3*log10(fft_slow_mag{s}.freq);
+    lintrend_fast_mag = intersep4 + slope4*log10(fft_fast_mag{s}.freq);
+    
+    %plot power for fast and slow without linear trend
+    %for grad
+    figure(3)
+    subplot(2,1,1)
+    plot(fft_slow_grad{s}.freq, log(fft_slow_grad{s}.powspctrm(1,:)) - lintrend_slow_grad, '-b'); title([subj, ', log power with removal linear trend, grad'])
+    hold on
+    plot(fft_fast_grad{s}.freq, log(fft_fast_grad{s}.powspctrm(1,:)) - lintrend_fast_grad, '-r'); 
+    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log relative power');
+    hold off
+    %for mag
+    subplot(2,1,2)
+    plot(fft_slow_mag{s}.freq, log(fft_slow_mag{s}.powspctrm(1,:)) - lintrend_slow_mag, '-b'); title([subj, ', log power with removal linear trend, mag'])
+    hold on
+    plot(fft_fast_mag{s}.freq, log(fft_fast_mag{s}.powspctrm(1,:)) - lintrend_fast_mag, '-r'); 
+    legend('slow', 'fast'); xlim([5,30]); xlabel('Frequency (Hz)'); ylabel('log relative power');
     hold off
     
     %save figures
-    saveas(figure(1), [savepath, subj, '/', subj, '_FFT_grad.jpeg']);
-    saveas(figure(2), [savepath, subj, '/', subj, '_FFT_mag.jpeg']);
-    
-%     %calculate absolute power differences  between conditions: after Fast - after Slow
-%     diff_grad{s} = fft_fast_grad{s};
-%     diff_mag{s} = fft_fast_mag{s};
-%     
-%     diff_grad{s}.powspctrm = (fft_fast_grad{s}.powspctrm - fft_slow_grad{s}.powspctrm)./(fft_fast_grad{s}.powspctrm + fft_slow_grad{s}.powspctrm)*100;
-%     diff_mag{s}.powspctrm = (fft_fast_mag{s}.powspctrm - fft_slow_mag{s}.powspctrm)./(fft_fast_mag{s}.powspctrm + fft_slow_mag{s}.powspctrm)*100;
-%     
-%     
-%     %plot figures
-%     figure(3)
-%     subplot(2,1,1)
-%     plot(diff_grad{s}.freq, diff_grad{s}.powspctrm(1,:)); title([subj, ', fast-slow difference FFT power, grad'])
-%     xlim([5,30]);
-%     
-%     subplot(2,1,2)
-%     plot(diff_grad{s}.freq, log(diff_grad{s}.powspctrm(1,:))); title([subj, ', log fast-slow difference FFT power, grad'])
-%     xlim([5,30]);
-%     
-%     saveas(figure(3), [savepath, subj, '/', subj, '_diff_FFT_prestim.jpeg']);
-
-end
-
+    saveas(figure(1), [savepath, subj, '/', subj, '_FFT_log_power_grad.jpeg']);
+    saveas(figure(2), [savepath, subj, '/', subj, '_FFT_log_power_mag.jpeg']);
+    saveas(figure(3), [savepath, subj, '/', subj, '_FFT_log_relative_power.jpeg']);
+ end
+   
 %save stats
 filename = strcat(savepath, '1_results/', 'fft_freq_analysis.mat');
 save(filename, 'fft_fast_grad', 'fft_slow_grad', 'fft_fast_mag', 'fft_slow_mag');
