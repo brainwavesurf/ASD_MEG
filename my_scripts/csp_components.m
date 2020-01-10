@@ -1,5 +1,5 @@
 % DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
-% ntrial_slow = 59 trials, ntrialslow = 57           
+% ntrial_slow = 64 trials, ntrial_fast = 65           
 
 clear all;
 close all;
@@ -40,17 +40,17 @@ for s=1: size (SUBJ,1)
     data_slow = ft_selectdata(cfg, slow_alpha_epochs);
     data_fast = ft_selectdata(cfg, fast_alpha_epochs);
 
-    ntrial_slow = size(data_slow.trial,2); %number of trials in the slow condition: 59
-    ntrial_fast = size(data_fast.trial,2); %number of trials in the fast condition: 57
+    ntrial_slow = size(data_slow.trial,2); %number of trials in the slow condition: 64
+    ntrial_fast = size(data_fast.trial,2); %number of trials in the fast condition: 65
 
     sampoints_slow = size(data_slow.time{1},2); %number of sampling point in slow and fast conditions: 401
     sampoints_fast = size(data_fast.time{1},2);
 
-    data_slow_tot = nan(102,sampoints_slow,ntrial_slow); % nMAG x nsamp x ntrial: 102x401x59 
-    data_fast_tot = nan(102,sampoints_fast,ntrial_fast); % nMAG x nsamp x ntrial: 102x401x57 
+    data_slow_tot = nan(102,sampoints_slow,ntrial_slow); % nMAG x nsamp x ntrial: 102x401x64 
+    data_fast_tot = nan(102,sampoints_fast,ntrial_fast); % nMAG x nsamp x ntrial: 102x401x65 
     
-    cov_slow = zeros(102,102,ntrial_slow); % nMAG x nIC x ntrial: 102x102x59
-    cov_fast = zeros(102,102,ntrial_fast); % nMAG x nIC x ntrial: 102x102x57
+    cov_slow = zeros(102,102,ntrial_slow); % nMAG x nIC x ntrial: 102x102x64
+    cov_fast = zeros(102,102,ntrial_fast); % nMAG x nIC x ntrial: 102x102x65
 
     %concatenate epochs
     for k = 1 : ntrial_slow
@@ -79,8 +79,8 @@ for s=1: size (SUBJ,1)
     W1 = W1(:,indsel); %nMAG x nCSP: 102x6 , mixing matrix
     A1 = A1(indsel,:); %nCSP x nMAG: 6x102 , unmixing matrix
 
-    Xcsp_slow = nan(ntrial_slow, sampoints_slow, size(W1,2)); %59x401x6
-    Xcsp_fast = nan(ntrial_fast, sampoints_fast, size(W1,2)); %57x401x6
+    Xcsp_slow = nan(ntrial_slow, sampoints_slow, size(W1,2)); %64x401x6
+    Xcsp_fast = nan(ntrial_fast, sampoints_fast, size(W1,2)); %65x401x6
     
     %% pattern maximizing the differences between cov1/cov2
 
