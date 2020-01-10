@@ -31,6 +31,7 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
              'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
 
+SUBJ = ['0106'];
 %loop for all subjects
 for s=1: size (SUBJ,1)
     
@@ -43,10 +44,12 @@ for s=1: size (SUBJ,1)
     %select grad and mag epochs separately for slow and fast conditions
     cfg = [];
     cfg.channel = 'MEGMAG';
+    cfg.latency = [-0.8 0.0];
     data_fast_grad = ft_selectdata(cfg, epo.fast_epochs);
     data_slow_grad = ft_selectdata(cfg, epo.slow_epochs);
     
     cfg.channel = 'MEGGRAD';
+    cfg.latency = [-0.8 0.0];
     data_fast_mag = ft_selectdata(cfg, epo.fast_epochs);
     data_slow_mag = ft_selectdata(cfg, epo.slow_epochs);
     
@@ -54,12 +57,14 @@ for s=1: size (SUBJ,1)
     epochs = [data_slow_grad; data_fast_grad; data_slow_mag; data_fast_mag];
     for s = 1: size(epochs,1)
         data = epochs(s,:);
+        
         cfg               = [];
-        cfg.foilim        = [1 50];
-        cfg.taper         = 'hanning';
-        cfg.pad           = 'nextpow2';
-        cfg.keeptrials    = 'yes';
         cfg.method        = 'irasa';
+        cfg.taper         = 'hanning'; 
+        cfg.pad           = 1;
+        cfg.foilim        = [2 40];       
+        cfg.tapsmofrq     = 3; 
+        cfg.keeptrials    = 'yes';
         frac_r{s} = ft_freqanalysis(cfg, data);
         
         cfg.method     = 'mtmfft';
@@ -106,6 +111,7 @@ for s=1: size (SUBJ,1)
             hold on;
             plot(orig{s}.freq, orig{s}.powspctrm, ...
               'linewidth', 2, 'color', [0, 0.4470, 0.7410])
+            xlim([2,40]);
             hold off; 
 
             title_name = ['after slow, grad'; 'after fast, grad'; 'after slow,  mag'; 'after fast,  mag'];
@@ -120,7 +126,7 @@ for s=1: size (SUBJ,1)
             uistack(p, 'bottom');  title([subj, ', IRASA power, ' title_name(s,:)])
             legend('FWHM oscillation', 'Fractal component', 'Power spectrum');
             xlabel('Frequency'); ylabel('Power');
-            set(gca, 'YLim', yl);
+            set(gca, 'YLim', yl); 
         else
             figure(2);
             subplot(2,1,s-2);
@@ -128,6 +134,7 @@ for s=1: size (SUBJ,1)
               'linewidth', 2, 'color', [0 0 0])
             hold on; plot(orig{s}.freq, orig{s}.powspctrm, ...
               'linewidth', 2, 'color', [0.8500, 0.3250, 0.0980])
+            xlim([2,40]);
             hold off; 
 
             % plot the full-width half-maximum of the oscillatory component
@@ -140,7 +147,7 @@ for s=1: size (SUBJ,1)
             uistack(p, 'bottom');  title([subj, ', IRASA power, ' title_name(s,:)])
             legend('FWHM oscillation', 'Fractal component', 'Power spectrum');
             xlabel('Frequency'); ylabel('Power');
-            set(gca, 'YLim', yl);
+            set(gca, 'YLim', yl); 
         end    
     end
     %save figures
