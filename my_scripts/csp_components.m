@@ -98,6 +98,7 @@ for s=1: size (SUBJ,1)
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
     
     %% plot results 
+    %oscillatory 
     for i = 1:6
     figure(1)
     subplot(2,3,i)
@@ -108,8 +109,32 @@ for s=1: size (SUBJ,1)
     xlim([0 401])
     title(['compoment', num2str(i)])
     end
+    
+    %topo
+    slow_label = zeros(ntrial_slow, 1); slow_label(:) = 1;
+    fast_label = zeros(ntrial_fast, 1); fast_label(:) = 2;
+
+    data = ft_appenddata(cfg, data_slow, data_fast); %append two structural data
+
+    cfg = [];
+    cfg.method = 'csp';
+    cfg.csp.classlabels = [slow_label; fast_label]; % vector that assigns a trial to class 1 or 2
+    cfg.csp.numfilters  = 10; % the number of spatial filters to use
+    [comp] = ft_componentanalysis(cfg, data);
+    comp.topo = pattern_ICcsp_slowVSfast;
+    comp.mixing = W1;
+    comp.unmixing = A1;
+
+    figure(2)
+    cfg = [];
+    cfg.component = 1:6;       % the component(s) that should be plotted
+    cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
+    cfg.comment   = 'no';
+    ft_topoplotIC(cfg, comp)
 
     filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
     saveas(figure(1), filename);
+    filename = strcat(savepath, subj, '/', subj, '_csp_components_topo.jpeg');
+    saveas(figure(2), filename);
 end
 
