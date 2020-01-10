@@ -31,7 +31,7 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
              'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
 
-SUBJ = ['0384'];
+SUBJ = ['0351'];
 %loop for all subjects
 for s=1: size (SUBJ,1)
     
@@ -86,34 +86,52 @@ for s=1: size (SUBJ,1)
     %plot figures for log power with linear trend 
     %for grad
     figure(1)
-    subplot(2,1,1)
+    clf
+    subplot_tight(2,1,1,[0.12 0.3])
     plot(slow_avg_grad{s}.freq, log(slow_avg_grad{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT power, grad'])
     hold on
     plot(intersep1 + slope1*log10(fast_avg_grad{s}.freq),'k--')
     legend('slow', 'lin trend'); xlim([2,40]); xlabel('Frequency (Hz)'); ylabel('log power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off 
     
-    subplot(2,1,2)
+    subplot_tight(2,1,2,[0.12 0.3])
     plot(fast_avg_grad{s}.freq, log(fast_avg_grad{s}.powspctrm(1,:)), '-r');
     hold on
     plot(intersep2 + slope2*log10(slow_avg_grad{s}.freq),'k--')
     legend('fast', 'lin trend'); xlim([2,40]); xlabel('Frequency (Hz)'); ylabel('log power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off 
     
     %for mag
-    figure(2)
-    subplot(2,1,1)
+    figure(2) 
+    clf
+    subplot_tight(2,1,1,[0.12 0.3])
     plot(slow_avg_mag{s}.freq, log(slow_avg_mag{s}.powspctrm(1,:)), '-b'); title([subj, ', FFT power, mag'])
     hold on
     plot(intersep3 + slope3*log10(fast_avg_mag{s}.freq),'k--')
     legend('slow', 'lin trend'); xlim([2,40]); xlabel('Frequency (Hz)'); ylabel('log power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off 
     
-    subplot(2,1,2)
+    subplot_tight(2,1,2,[0.12 0.3])
     plot(fast_avg_mag{s}.freq, log(fast_avg_mag{s}.powspctrm(1,:)), '-r');
     hold on
     plot(intersep4 + slope4*log10(slow_avg_mag{s}.freq),'k--')
     legend('fast', 'lin trend'); xlim([2,40]); xlabel('Frequency (Hz)'); ylabel('log power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off 
     
     %name linear trend to use for plot 
@@ -125,19 +143,29 @@ for s=1: size (SUBJ,1)
     %plot power for fast and slow without linear trend
     %for grad
     figure(3)
-    subplot(2,1,1)
+    clf
+    subplot_tight(2,1,1,[0.12 0.3])
     plot(slow_avg_grad{s}.freq, log(slow_avg_grad{s}.powspctrm(1,:)) - lintrend_slow_grad, '-b'); title([subj, ', log power with removal linear trend, grad'])
     hold on
     plot(fast_avg_grad{s}.freq, log(fast_avg_grad{s}.powspctrm(1,:)) - lintrend_fast_grad, '-r'); 
     legend('slow', 'fast'); xlabel('Frequency (Hz)'); ylabel('log relative power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off
     %for mag
-    subplot(2,1,2)
+    subplot_tight(2,1,2,[0.12 0.3])
     plot(slow_avg_mag{s}.freq, log(slow_avg_mag{s}.powspctrm(1,:)) - lintrend_slow_mag, '-b'); title([subj, ', log power with removal linear trend, mag'])
     hold on
     plot(fast_avg_mag{s}.freq, log(fast_avg_mag{s}.powspctrm(1,:)) - lintrend_fast_mag, '-r'); 
     legend('slow', 'fast'); xlabel('Frequency (Hz)'); ylabel('log relative power');
+    set(gca,'Xscale','log')
+    set(gca,'XTick',[5,10,20,30,40],...
+        'XTickLabel',{'5' '10' '20' '30' '40'})
+    xlim([2,40])
     hold off
+    
     
     %save figures
     saveas(figure(1), [savepath, subj, '/', subj, '_FFT_log_power_grad.jpeg']);
