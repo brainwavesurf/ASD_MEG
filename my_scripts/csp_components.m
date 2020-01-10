@@ -1,4 +1,4 @@
-% DATA from ONE SUBJ #0106 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
+% DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
 % ntrial_slow = 59 trials, ntrialslow = 57           
 
 clear all;
@@ -23,6 +23,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 %without '0357';
 SUBJ = [SUBJ_NT; SUBJ_ASD];
 
+
 SUBJ = ['0107'];
 
 for s=1: size (SUBJ,1)
@@ -39,15 +40,15 @@ for s=1: size (SUBJ,1)
     data_slow = ft_selectdata(cfg, slow_alpha_epochs);
     data_fast = ft_selectdata(cfg, fast_alpha_epochs);
 
-    ntrial_slow = size(slow_alpha_epochs.trial,2); %number of trials in the slow condition: 59
-    ntrial_fast = size(fast_alpha_epochs.trial,2); %number of trials in the fast condition: 57
+    ntrial_slow = size(data_slow.trial,2); %number of trials in the slow condition: 59
+    ntrial_fast = size(data_fast.trial,2); %number of trials in the fast condition: 57
 
     sampoints_slow = size(data_slow.time{1},2); %number of sampling point in slow and fast conditions: 401
     sampoints_fast = size(data_fast.time{1},2);
 
     data_slow_tot = nan(102,sampoints_slow,ntrial_slow); % nMAG x nsamp x ntrial: 102x401x59 
     data_fast_tot = nan(102,sampoints_fast,ntrial_fast); % nMAG x nsamp x ntrial: 102x401x57 
-
+    
     cov_slow = zeros(102,102,ntrial_slow); % nMAG x nIC x ntrial: 102x102x59
     cov_fast = zeros(102,102,ntrial_fast); % nMAG x nIC x ntrial: 102x102x57
 
@@ -62,16 +63,16 @@ for s=1: size (SUBJ,1)
     cov_fast(:,:,k)= cov(transpose(squeeze(data_fast_tot(:,:,k))));
     end
 
-    cov_slow_cond = mean(cov_slow,3); %102x102
-    cov_fast_cond = mean(cov_fast,3); %102x102         
+    cov_slow = mean(cov_slow,3); %102x102
+    cov_fast = mean(cov_fast,3); %102x102         
     %% select 3 eigenvectors from each tail of eigenvalues [W1, D1] = eig(cov_slow_cond, cov_slow_cond + cov_fast_cond);
+    % eig(cov1, cov2) is similar, but different normalization
 
-    [W1,D1] = eig(cov_slow_cond, cov_slow_cond + cov_fast_cond); %W1: spatial filters
+    %           Condition1  Condition1+Condition2
+    [W1,D1] = eig(cov_slow, cov_slow + cov_fast); %W1: spatial filters
 
     figure;plot(diag(D1),'m*')
-    saveas(figure(1),[savepath, '/1_results/', '0106_ASD_eigenvalues_mag.jpeg'])
-
-    mixing = W1; % nMAG x nIC : 102x102
+    
     A1 = inv(W1); % nIC x nMAG: 102x102; filters must be positive and negative: ok 
 
     indsel = [1:3, size(W1,1)-2:size(W1,1)]; %pick 3 eigenvalues from each tail
@@ -83,8 +84,7 @@ for s=1: size (SUBJ,1)
     
     %% pattern maximizing the differences between cov1/cov2
 
-    Pattern_ICcsp1_vs2 = transpose(A1); %[nCSP x nMEG] 102x6
-
+    pattern_ICcsp_slowVSfast = transpose(A1); % A_CSP [nCSP x nMEG] 102 x 6
 
     for j = 1:ntrial_slow   
     Xcsp_slow(j,:,:)=transpose(squeeze(data_slow_tot(:,:,j)))*W1; % ntrial x nsampl x 6 = [ntrial x nsampl x nIC] * [nIC x 6] 
@@ -94,11 +94,11 @@ for s=1: size (SUBJ,1)
     Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 6 x nsampl x ntrial = [6 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
-    filename = strcat(epofolder, subj, '_csp_analysis.mat');
-    save(filename, 'mixing', 'W1', 'A1', 'Pattern_ICcsp1_vs2', 'Xcsp_fast', 'Xcsp_slow');
-end
-
-for i = 1:6
+    filename = strcat(savepath, subj, '/', subj, '_csp_analysis.mat');
+    save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
+    
+    %% plot results 
+    for i = 1:6
     figure(1)
     subplot(2,3,i)
     plot(Xcsp_fast(1,:,i), 'r')
@@ -107,7 +107,9 @@ for i = 1:6
     legend('fast','slow')
     xlim([0 401])
     title(['compoment', num2str(i)])
+    end
+
+    filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
+    saveas(figure(1), filename);
 end
 
-filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
-saveas(figure(1), filename);
