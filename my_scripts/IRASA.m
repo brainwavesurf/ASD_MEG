@@ -31,7 +31,7 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
              'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
 
-SUBJ = ['0106'];
+SUBJ = ['0384'];
 %loop for all subjects
 for s=1: size (SUBJ,1)
     
@@ -61,7 +61,7 @@ for s=1: size (SUBJ,1)
         cfg               = [];
         cfg.method        = 'irasa';
         cfg.taper         = 'hanning'; 
-        cfg.pad           = 1;
+        cfg.pad           = 1024/1000; %sampl/fs
         cfg.foilim        = [2 40];       
         cfg.tapsmofrq     = 3; 
         cfg.keeptrials    = 'yes';
