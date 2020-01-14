@@ -10,10 +10,18 @@ path('/home/a_shishkina/fieldtrip/external/mne/', path);
 realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 
-%add list of subjects:
-SUBJ = ['0076'; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0136'; '0137'; '0138'; '0139'; '0140'; '0141'; '0158'; '0159'; '0160'; '0161'; '0162'; '0163'; '0164'; '0178'; '0179'; '0253'; '0254'; '0255'; '0256'; '0257'; '0259'; '0273'; '0274'; '0275'; '0276'; '0277'; '0346'; '0347'; '0348'; '0350'; '0351'; '0358'; '0378'; '0380'; '0381'; '0382'; '0383'; '0384']; 
-
-% without SUBJ = ['0357'];
+%load subj list
+     
+SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0135'; '0136';...  
+            '0137'; '0138'; '0140'; '0158'; '0162'; '0163'; '0178';...
+            '0179'; '0255'; '0257'; '0348'; '0378'; '0379'; '0384']; 
+        
+SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...  
+            '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
+            '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
+            '0380'; '0381'; '0382'; '0383'];  
+%without '0357';
+SUBJ = [SUBJ_ASD; SUBJ_NT];
 
 for s=1: size (SUBJ,1)
     close all
@@ -42,13 +50,13 @@ for s=1: size (SUBJ,1)
     
     %Define trials
     % trl:   start, end and offset (interval before the event)
-    pre = -1.0* hdr.Fs ;
-    post = 1.2* hdr.Fs ;
+    pre = -1.0* hdrraw.Fs ;
+    post = 1.2* hdrraw.Fs ;
     trl=[];
     for i=1:size (events,1)
         trl(i, 1)=(events(i,1)+pre) ;
         trl(i, 2)=(events(i,1)+post) ;
-        trl(i, 3)= -1.0*hdr.Fs ; % offset
+        trl(i, 3)= -1.0*hdrraw.Fs ; % offset
         trl(i, 4) = events(i,3); % stimulus_value;
     end
 
@@ -62,8 +70,8 @@ for s=1: size (SUBJ,1)
     cfg.dataset = fiff_file;
     cfg    = ft_definetrial(cfg);
     epochs = ft_preprocessing(cfg);
-    
-%check approximately 100 ms response
+%     
+% %check approximately 100 ms response
 %     cfg = [];
 %     cfg.channel=epochs.label;
 %     avg = ft_timelockanalysis(cfg,epochs);
@@ -71,7 +79,7 @@ for s=1: size (SUBJ,1)
 %     hh=figure;
 %     ttt = find(avg.time>-0.3 & avg.time<0.5);
 %     plot (avg.time(ttt), avg.avg(:, ttt));
-%     
+% %     
 
     cfg           = [];
     cfg.trials    = slow_ind;
