@@ -27,10 +27,6 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 %without '0357';
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
-%load posterior sensors list
-post_sens = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512',...
-             'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
-
 SUBJ = ['0384'];
 %loop for all subjects
 for s=1: size (SUBJ,1)
@@ -43,15 +39,16 @@ for s=1: size (SUBJ,1)
     
     %select grad and mag epochs separately for slow and fast conditions
     cfg = [];
-    cfg.channel = 'MEGMAG';
+    cfg.channel = 'MEGGRAD';
     cfg.latency = [-0.8 0.0];
     data_fast_grad = ft_selectdata(cfg, epo.fast_epochs);
     data_slow_grad = ft_selectdata(cfg, epo.slow_epochs);
     
-    cfg.channel = 'MEGGRAD';
+    cfg.channel = 'MEGMAG';
     cfg.latency = [-0.8 0.0];
     data_fast_mag = ft_selectdata(cfg, epo.fast_epochs);
     data_slow_mag = ft_selectdata(cfg, epo.slow_epochs);
+    
     
     % perform IRASA and regular spectral analysis
     epochs = [data_slow_grad; data_fast_grad; data_slow_mag; data_fast_mag];
@@ -61,9 +58,9 @@ for s=1: size (SUBJ,1)
         cfg               = [];
         cfg.method        = 'irasa';
         cfg.taper         = 'hanning'; 
-        cfg.pad           = 1024/1000; %sampl/fs
+        cfg.pad           = 'nextpow2'; %sampl/fs
         cfg.foilim        = [2 40];       
-        cfg.tapsmofrq     = 3; 
+        cfg.tapsmofrq     = 2; 
         cfg.keeptrials    = 'yes';
         frac_r{s} = ft_freqanalysis(cfg, data);
         
@@ -151,6 +148,6 @@ for s=1: size (SUBJ,1)
         end    
     end
     %save figures
-    saveas(figure(1), [savepath, subj, '/', subj, '_IRASA_power_grad.jpeg']);
-    saveas(figure(2), [savepath, subj, '/', subj, '_IRASA_power_mag.jpeg']);
+    saveas(figure(1), [savepath, subj, '/', subj, '_IRASA_power_grad_1024.jpeg']);
+    saveas(figure(2), [savepath, subj, '/', subj, '_IRASA_power_mag_1024.jpeg']);
 end
