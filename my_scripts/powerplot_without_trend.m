@@ -61,10 +61,7 @@ for s=1: size (SUBJ,1)
     slow_avg_mag{s} = ft_freqanalysis(cfg, epo_fast_mag);
     fast_avg_mag{s} = ft_freqanalysis(cfg, epo_slow_mag);
     
-    %save stats
-    filename = strcat(savepath, subj, '/', subj, '_fft_freq_analysis.mat');
-    save(filename, 'fft_fast_grad', 'fft_slow_grad', 'fft_fast_mag', 'fft_slow_mag');
-
+    
     for i=1:2
         if i == 1
             type = 'loglog'; %log(freq) and log(power)
@@ -105,6 +102,7 @@ for s=1: size (SUBJ,1)
             set(gca,'Xscale','log')
             set(gca,'XTick',[5,10,20,30,40],...
                     'XTickLabel',{'5' '10' '20' '30' '40'})
+                
             %for mag
             subplot_tight(2,1,2,[0.12 0.3])
             plot(slow_avg_mag{s}.freq, log(slow_avg_mag{s}.powspctrm(1,:)) - trend_slow_mag, '-b'); title([subj, ', power with removal linear trend, mag'])
@@ -116,6 +114,7 @@ for s=1: size (SUBJ,1)
             set(gca,'Xscale','log')
             set(gca,'XTick',[5,10,20,30,40],...
                 'XTickLabel',{'5' '10' '20' '30' '40'})
+            
         else
             %for grad
             subplot_tight(2,1,1,[0.12 0.3])
@@ -144,6 +143,17 @@ for s=1: size (SUBJ,1)
     saveas(figure(4), [savepath, subj, '/', subj, '_FFT_power_grad.jpeg']);
     saveas(figure(5), [savepath, subj, '/', subj, '_FFT_power_mag.jpeg']);
     saveas(figure(6), [savepath, subj, '/', subj, '_FFT_relative_power.jpeg']);
+    %% calculate individual alpha power
+    alpha_slow_grad = alpha_power(slow_avg_grad{s}.freq,slow_avg_grad{s}.powspctrm);
+    alpha_fast_grad = alpha_power(fast_avg_grad{s}.freq,fast_avg_grad{s}.powspctrm);
+    alpha_slow_mag = alpha_power(slow_avg_mag{s}.freq,slow_avg_mag{s}.powspctrm);
+    alpha_fast_mag = alpha_power(fast_avg_mag{s}.freq,fast_avg_mag{s}.powspctrm);
+    
+    %save stats
+    filename = strcat(savepath, subj, '/', subj, '_alpha_power.mat');
+    save(filename, 'alpha_slow_grad', 'alpha_fast_grad', 'alpha_slow_mag', 'alpha_fast_mag');
+
+
  end
    
 %save stats
