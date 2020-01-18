@@ -70,7 +70,7 @@ for s=1: size (SUBJ,1)
     cfg.dataset     = fiff_file;
     cfg.channel     = 'MEG';
     cfg.bpfilter    = 'yes';
-    cfg.bpfreq      = [10 17];
+    cfg.bpfreq      = [10 14];
     %cfg.bpfilttype = 'firws';
     
     [cfg] = ft_definetrial(cfg);
