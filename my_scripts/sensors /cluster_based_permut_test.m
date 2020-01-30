@@ -39,11 +39,11 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
         
 SUBJ_ALL = [SUBJ_ASD; SUBJ_NT];
 %% load freqanalysis data for all groups
-for s=1:size(SUBJ_ALL,1)
+for s=1:size(SUBJ,1)
     
-    subj = SUBJ_ALL(s,:); 
+    subj = SUBJ(s,:); 
     %load data after freqanalysis 
-    freq_all = load(strcat(savepath, subj, '/', subj, '_freqanalysis.mat'));
+    freq_all = load(strcat(savepath, subj, '/', subj, 'wvlts_freqanalysis.mat'));
     %after mtmconvol
     freqFast_mag{s} = freq_all.wvlts_fast_mag;
     freqSlow_mag{s} = freq_all.wvlts_slow_mag;
@@ -78,7 +78,7 @@ end
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = [10 13];
+cfg.frequency        = [7 13];
 cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
@@ -95,7 +95,7 @@ cfg_neighb = [];
 cfg_neighb.method    = 'distance';
 cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, freqFast_mag{1}); %using a distance threshold of 4, there are on average 13.8 neighbours per channel
 
-subj = size(SUBJ_ALL,1);
+subj = size(SUBJ,1);
 design = zeros(2,2*subj);
 for i = 1:subj
 design(1,i) = i;
@@ -117,7 +117,7 @@ cfg.ivar     = 2;
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = [10 13];
+cfg.frequency        = [7 13];
 cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
@@ -132,9 +132,9 @@ cfg.numrandomization = 1000;
 % specifies with which sensors other sensors can form clusters
 cfg_neighb = [];
 cfg_neighb.method    = 'distance';
-cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, freqFast_mag_NT{1}); %using a distance threshold of 4, there are on average 13.8 neighbours per channel
+cfg.neighbours       = ft_prepare_neighbours(cfg_neighb, freqFast_mag{1}); %using a distance threshold of 4, there are on average 13.8 neighbours per channel
 
-subj = size(SUBJ_NT,1);
+subj = size(SUBJ,1);
 design = zeros(2,2*subj);
 for i = 1:subj
 design(1,i) = i;
@@ -149,14 +149,14 @@ cfg.design   = design;
 cfg.uvar     = 1;
 cfg.ivar     = 2;
 
-[within_subj_stat_NT] = ft_freqstatistics(cfg, freqFast_mag_NT{:}, freqSlow_mag_NT{:})
+[within_subj_stat_NT] = ft_freqstatistics(cfg, freqFast_mag{:}, freqSlow_mag{:})
 
 %% do cluster-based permutation test for ASD
 
 cfg = [];
 cfg.channel          = {'MEGMAG'};
 cfg.latency          = [-0.7 0];
-cfg.frequency        = [10 13];
+cfg.frequency        = [7 13];
 cfg.avgoverfreq      = 'yes';
 cfg.method           = 'montecarlo';
 cfg.statistic        = 'ft_statfun_depsamplesT';
@@ -195,12 +195,12 @@ cfg.alpha  = 0.025;
 cfg.parameter = 'stat';
 cfg.layout = 'neuromag306mag.lay';
 
-ft_clusterplot(cfg, within_subj_stat); %15 clusters
-ft_clusterplot(cfg, within_subj_stat_NT); %7 clusters
+ft_clusterplot(cfg, within_subj_stat); %nothing to plot
+ft_clusterplot(cfg, within_subj_stat_NT); %4 clusters
 ft_clusterplot(cfg, within_subj_stat_ASD); %nothing to plot
 
 %plot 
-saveas(figure(2),[savepath, '/1_results/', 'cluster_based_control_avg10_13.jpeg']);
+saveas(figure(2),[savepath, '/1_results/', 'cluster_based_control_avg7_13.jpeg']);
 saveas(figure(1),[savepath, '/1_results/', 'cluster_based_combined_avg10_13.jpeg']);
 
 %% the same for gradiometers
@@ -364,7 +364,7 @@ cfg.parameter = 'stat';
 cfg.layout = 'neuromag306planar.lay';%for grad
 ft_clusterplot(cfg, within_subj_stat_grad); %15 clusters
 ft_clusterplot(cfg, within_subj_stat_grad_NT); %6 clusters
-ft_clusterplot(cfg, within_subj_stat_grad_ASD); % 14 clusters
+ft_clusterplot(cfg, within_subj_stat_grad_ASD); %nothing to plot
 %plot 
 saveas(figure(1),[savepath, '/1_results/', 'cluster_based_grad_combined_avg10_13.jpeg']);
 saveas(figure(2),[savepath, '/1_results/', 'cluster_based_grad_control_avg10_13.jpeg']);

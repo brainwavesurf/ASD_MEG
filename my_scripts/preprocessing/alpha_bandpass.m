@@ -1,5 +1,5 @@
 %% Apply band-pass filter to the whole continious recording
-% Cut epochs [-0.8 0]
+% Cut epochs [-0.8 0] as interstimuli and [0.4 1.2] as the stimulation interval
 
 clear all;
 close all;
@@ -96,7 +96,20 @@ for s=1: size (SUBJ,1)
     cfg.latency = [-0.8 0];
     fast_alpha_bp = ft_selectdata(cfg, epochs); %extraxt trials after fast stimuli
     
+    cfg = [];
+    cfg.trials = slow_ind;
+    cfg.latency = [0.4 1.2];
+    slow_alpha_post = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
+    
+    cfg.trials = medium_ind;
+    cfg.latency = [0.4 1.2];
+    medium_alpha_post = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
+    
+    cfg.trials = fast_ind;
+    cfg.latency = [0.4 1.2];
+    fast_alpha_post = ft_selectdata(cfg, epochs);
+    
     filename = strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat');
-    save(filename, 'epochs', 'slow_alpha_bp', 'medium_alpha_bp', 'fast_alpha_bp');
+    save(filename, 'epochs', 'slow_alpha_bp', 'medium_alpha_bp', 'fast_alpha_bp', 'slow_alpha_post', 'medium_alpha_post', 'fast_alpha_post');
     
 end

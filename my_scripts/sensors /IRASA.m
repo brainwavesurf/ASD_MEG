@@ -27,7 +27,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 %without '0357';
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
-SUBJ = ['0384'];
+SUBJ = ['0106'];
 %loop for all subjects
 for s=1: size (SUBJ,1)
     

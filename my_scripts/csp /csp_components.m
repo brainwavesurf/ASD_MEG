@@ -23,9 +23,6 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 %without '0357';
 SUBJ = [SUBJ_NT; SUBJ_ASD];
 
-
-SUBJ = ['0107'];
-
 for s=1: size (SUBJ,1)
     close all
     subj = SUBJ (s,:); 
@@ -33,12 +30,12 @@ for s=1: size (SUBJ,1)
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
     %load alpha epochs
-    load(strcat(epofolder, subj, '_preproc_alpha_epochs.mat'));
+    load(strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat'));
 
     cfg = [];
     cfg.channel = 'MEGMAG';
-    data_slow = ft_selectdata(cfg, slow_alpha_epochs);
-    data_fast = ft_selectdata(cfg, fast_alpha_epochs);
+    data_slow = ft_selectdata(cfg, slow_alpha_bp); %slow_alpha_post
+    data_fast = ft_selectdata(cfg, fast_alpha_bp); %fast_alpha_post
 
     ntrial_slow = size(data_slow.trial,2); %number of trials in the slow condition: 64
     ntrial_fast = size(data_fast.trial,2); %number of trials in the fast condition: 65
@@ -96,7 +93,7 @@ for s=1: size (SUBJ,1)
 
     filename = strcat(savepath, subj, '/', subj, '_csp_analysis.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
-    
+end   
     %% plot results 
     %oscillatory 
     for i = 1:6
@@ -132,9 +129,9 @@ for s=1: size (SUBJ,1)
     cfg.comment   = 'no';
     ft_topoplotIC(cfg, comp)
 
-    filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
-    saveas(figure(1), filename);
-    filename = strcat(savepath, subj, '/', subj, '_csp_components_topo.jpeg');
-    saveas(figure(2), filename);
+%     filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
+%     saveas(figure(1), filename);
+%     filename = strcat(savepath, subj, '/', subj, '_csp_components_topo.jpeg');
+%     saveas(figure(2), filename);
 end
-
+% 
