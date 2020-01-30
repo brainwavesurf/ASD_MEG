@@ -113,6 +113,59 @@ for i = 1:3
         MEG_single_trl{t} = MEG_single_trial;
     end
     data_single_trial{i} = MEG_single_trl;
+    
+    %do eloreta for each trial 
+    for t = 1:size(MEG_trials{i}.trial,1)
+        cfg                         = [];
+        cfg.method                  = 'eloreta';                    %specify method 
+        cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
+        cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
+        cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
+        cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
+        cfg.eloreta.lambda          = 0.05;                         %regularisation parameter - try different values (3)
+        cfg.channel                 = 'MEGMAG';
+        source_trials{t}            = ft_sourceanalysis(cfg, data_single_trial{i}{t});
+
+        %average parameter 'pow' for all trials
+        pow     = 0;
+        ntrial  = 0;
+        source_avg{i}          = source_trials{1}; 
+        source_avg{i}.avg.pow  = (pow + source_trials{t}.avg.pow)/(ntrial + t);
+    end
+    
+    %interpolate data
+    cfg            = [];
+    cfg.parameter  = 'pow';
+    interpolate{i}    = ft_sourceinterpolate(cfg, source_avg{i}, mri.mri_orig_realigned);
+    
+    % plot ortho
+    cfg = [];
+    cfg.method        = 'ortho';
+    cfg.funparameter  = 'pow';
+    ft_sourceplot(cfg,interpolate{i});
+    
+    % spatially normalize the anatomy and functional data to MNI coordinates
+    cfg = [];
+    cfg.nonlinear = 'no';
+    normalize{i} = ft_volumenormalise(cfg, interpolate{i});
+    
+    % surface plot
+    cfg = [];
+    cfg.method         = 'surface';
+    cfg.funparameter   = 'pow';
+    cfg.maskparameter  = cfg.funparameter;
+    cfg.funcolorlim    = [0.0 2.4e-16];
+    cfg.funcolormap    = 'jet';
+    cfg.opacitylim     = [0.0 2.4e-16];
+    cfg.opacitymap     = 'rampup';
+    cfg.projmethod     = 'nearest';
+    cfg.surffile       = 'surface_white_both.mat'; % Cortical sheet from canonical MNI brain
+    ft_sourceplot(cfg, normalize{i});
+    view ([45 30])
+    
+    %save figires
+    saveas(figure(i), [savepath, subj, '/', subj, '_csp_ortho_comp_', num2str(i),'.jpeg']);
+    saveas(figure(i+1), [savepath, subj, '/', subj, '_csp_surface_comp_', num2str(i),'.jpeg']);
 end
 
 % replace trials with CSP components, the first three comp for fast cond, the last three for slow cond
@@ -128,7 +181,7 @@ for i = 4:6
     MEG_trials{i}         = ft_timelockanalysis(cfg, data_comp{i});
     
     %create noise cov matrix for keeptrials case, same for each trial
-    for j = 1:size(MEG_trials{4}.trial,1)
+    for j = 1:size(MEG_trials{i}.trial,1)
         noise_cov(j,:,:)  = MEG_cov.cov;
     end
     MEG_trials{i}.cov = noise_cov;
