@@ -88,7 +88,7 @@ cfg.covariance        = 'yes';      % calculate covariance matrix of the data
 cfg.covariancewindow  = [0.4 1.2];  % calculate the covariance matrix for a specific time window
 MEG_cov               = ft_timelockanalysis(cfg, data_for_cov);
 
-% replace trials with CSP components, the first three comp for fast cond, the last three for slow cond
+% last three components for slow cond
 for i = 1:3
     data_comp{i} = data_fast;
     data_comp{i}.trial = fast{i};
@@ -168,7 +168,7 @@ for i = 1:3
     saveas(figure(i+1), [savepath, subj, '/', subj, '_csp_surface_comp_', num2str(i),'.jpeg']);
 end
 
-% replace trials with CSP components, the first three comp for fast cond, the last three for slow cond
+% last three components for slow cond
 for i = 4:6
     data_comp{i} = data_slow;
     data_comp{i}.trial = slow{i};
