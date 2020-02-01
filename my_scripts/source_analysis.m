@@ -202,6 +202,11 @@ for i = 4:6
     
     % do eloreta for each trial 
     for t = 1:size(MEG_trials{i}.trial,1)
+        
+        cfg =[];
+        cfg.avgoverrpt = 'yes';
+        avg_single_trial{i}{t} = ft_selectdata(cfg, data_single_trial{i}{t});
+        
         cfg                         = [];
         cfg.method                  = 'eloreta';                    %specify method 
         cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
@@ -210,7 +215,7 @@ for i = 4:6
         cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
         cfg.eloreta.lambda          = 0.05;                         %regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
-        source_trials{t}            = ft_sourceanalysis(cfg, data_single_trial{i}{t});
+        source_trials{t}            = ft_sourceanalysis(cfg, avg_single_trial{i}{t});
         
         source_avg{i} = source_trials{1};
         avg_pow       = (pow + source_trials{t}.avg.pow)/(ntrial + t);
