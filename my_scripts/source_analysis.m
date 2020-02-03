@@ -1,10 +1,9 @@
 %Source localization of MEG data after CSP by 'eloreta' for one subject
-
+clear all
 % path info
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
 ft_defaults;
-
 
 path('/home/a_shishkina/externals/files', path);
 path('/home/a_shishkina/data/KI/SUBJECTS/0106/ICA_nonotch_crop', path);
@@ -97,6 +96,7 @@ for i = 1:3
     
     % divide data to single trials 
     for t = 1:size(MEG_trials{i}.trial,1)
+        
         MEG_single_trial{i}{t} = MEG_trials{i};
         MEG_single_trial{i}{t}.avg = MEG_trials{i}.trial(t,:,:);
         
@@ -105,7 +105,7 @@ for i = 1:3
         cfg.avgoverrpt = 'yes';
         MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
         MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial
-    end    
+        
 %       time: [1×401 double]
 %      label: {102×1 cell}
 %       grad: [1×1 struct]
@@ -114,20 +114,21 @@ for i = 1:3
 %     dimord: 'chan_time'
 %        cov: [102×102 double]
         
-    % do eloreta for each trial
-    cfg                         = [];
-    cfg.method                  = 'eloreta';                    %specify method 
-    cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
-    cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
-    cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
-    cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
-    cfg.eloreta.lambda          = 0.05;                         %0.05regularisation parameter - try different values (3)
-    cfg.channel                 = 'MEGMAG';
-    source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+        % do eloreta for each trial
+        cfg                         = [];
+        cfg.method                  = 'eloreta';                    %specify method 
+        cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
+        cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
+        cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
+        cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
+        cfg.eloreta.lambda          = 0.05;                         %0.05regularisation parameter - try different values (3)
+        cfg.channel                 = 'MEGMAG';
+        source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
 
-    %average parameter 'pow' for all trials 
-    source_avg{i}   = source_trials{1}; 
-    pow         = (pow + source_trials{t}.avg.pow)/(ntrial + t);
+        %average parameter 'pow' for all trials 
+        source_avg{i}   = source_trials{1}; 
+        pow         = (pow + source_trials{t}.avg.pow)/(ntrial + t);
+    end
     
     % replace pow with average for all trials
     source_avg{i}.avg.pow = pow;
@@ -187,6 +188,7 @@ for i = 4:6
     
     % divide data to single trials 
     for t = 1:size(MEG_trials{i}.trial,1)
+        
         MEG_single_trial{i}{t} = MEG_trials{i};
         MEG_single_trial{i}{t}.avg = MEG_trials{i}.trial(t,:,:);
         
@@ -194,12 +196,9 @@ for i = 4:6
         cfg = [];
         cfg.avgoverrpt = 'yes';
         MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
-        MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial
-    end 
+        MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial 
     
-    % do eloreta for each trial 
-    for t = 1:size(MEG_trials{i}.trial,1)
-        
+        % do eloreta for each trial   
         cfg =[];
         cfg.avgoverrpt = 'yes';
         avg_single_trial{i}{t} = ft_selectdata(cfg, data_single_trial{i}{t});
