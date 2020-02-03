@@ -1,4 +1,4 @@
-% DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
+% comments for DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
 % ntrial_slow = 64 trials, ntrial_fast = 65           
 
 clear all;
@@ -24,7 +24,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 SUBJ = [SUBJ_NT; SUBJ_ASD];
 
 for s=1: size (SUBJ,1)
-    close all
+   
     subj = SUBJ (s,:); 
     savemegto = strcat(savepath, subj);
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
