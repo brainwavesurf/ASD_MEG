@@ -199,10 +199,6 @@ for i = 4:6
         MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial 
     
         % do eloreta for each trial   
-        cfg =[];
-        cfg.avgoverrpt = 'yes';
-        avg_single_trial{i}{t} = ft_selectdata(cfg, data_single_trial{i}{t});
-        
         cfg                         = [];
         cfg.method                  = 'eloreta';                    %specify method 
         cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
