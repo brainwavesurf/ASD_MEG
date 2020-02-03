@@ -13,14 +13,7 @@ realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 
 %%
-% add list of all subjects:
-SUBJ_All = ['0076'; '0101'; '0102'; '0103'; '0104'; '0105'; '0106'; '0107'; '0135'; '0136'; '0137'; '0138'; '0139';...  
-            '0140'; '0141'; '0158'; '0159'; '0160'; '0161'; '0162'; '0163'; '0164'; '0178'; '0179'; '0253';...
-            '0254'; '0255'; '0256'; '0257'; '0259'; '0273'; '0274'; '0275'; '0276'; '0277'; '0278'; '0278';...
-            '0310'; '0346'; '0347'; '0348'; '0349'; '0350'; '0351'; '0357'; '0358'; '0378'; '0379'; '0380'; '0381';...
-            '0382'; '0383'; '0384'];
-
-% choose only subjects with MRI 
+%load subj list
      
 SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0135'; '0136';...  
             '0137'; '0138'; '0140'; '0158'; '0162'; '0163'; '0178';...
@@ -31,11 +24,10 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
 %without '0357';
+SUBJ = [SUBJ_ASD; SUBJ_NT];
 
-SUBJ = [SUBJ_NT; SUBJ_ASD];
+for s=1:size (SUBJ,1)
 
-for s=1: size (SUBJ,1)
-    close all
     subj = SUBJ (s,:); 
     savemegto = strcat(savepath, subj);
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
@@ -70,8 +62,7 @@ for s=1: size (SUBJ,1)
     cfg.dataset     = fiff_file;
     cfg.channel     = 'MEG';
     cfg.bpfilter    = 'yes';
-    cfg.bpfreq      = [10 14];
-    %cfg.bpfilttype = 'firws';
+    cfg.bpfreq      = [10 17];
     
     [cfg] = ft_definetrial(cfg);
     epochs = ft_preprocessing(cfg);
