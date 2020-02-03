@@ -207,10 +207,10 @@ for i = 4:6
         cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
         cfg.eloreta.lambda          = 0.05;                         %regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
-        source_trials{t}            = ft_sourceanalysis(cfg, avg_single_trial{i}{t});
-        
+        source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+      
         source_avg{i} = source_trials{1};
-        avg_pow       = (pow + source_trials{t}.avg.pow)/(ntrial + t);
+        pow       = (pow + source_trials{t}.avg.pow)/(ntrial + t);
     end
     
     % replace pow with average for all trials
@@ -237,9 +237,9 @@ for i = 4:6
     cfg.method         = 'surface';
     cfg.funparameter   = 'pow';
     cfg.maskparameter  = cfg.funparameter;
-    cfg.funcolorlim    = [0.0 2.4e-16];
+    %cfg.funcolorlim    = [0.0 2.4e-16];
     cfg.funcolormap    = 'jet';
-    cfg.opacitylim     = [0.0 2.4e-16];
+    %cfg.opacitylim     = [0.0 2.4e-16];
     cfg.opacitymap     = 'rampup';
     cfg.projmethod     = 'nearest';
     cfg.surffile       = 'surface_white_both.mat'; % Cortical sheet from canonical MNI brain
@@ -250,3 +250,4 @@ for i = 4:6
     saveas(figure(1), [savepath, subj, '/', subj, '_csp_ortho_comp_', num2str(i),'.jpeg']);
     saveas(figure(2), [savepath, subj, '/', subj, '_csp_surface_comp_', num2str(i),'.jpeg']);
 end
+
