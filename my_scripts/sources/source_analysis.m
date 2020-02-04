@@ -15,7 +15,7 @@ mrifolder = strcat( '/mri_linwarp_', num2str(6), 'mm_', 'brthr',  '0.9/');
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 %%
 % for one subj
-subj = '0257'; %'0106';
+subj = '0106';
 
 % load headmodel
 headmodel = load(strcat(data_path, subj, mrifolder, subj, '_individ_hdm_vol.mat'));
@@ -125,7 +125,7 @@ for i = 1:3
         cfg.channel                 = 'MEGMAG';
         source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
                 
-%       time: [1×801 double]
+%       time: [1×401 double]
 %        dim: [29 35 30]
 %     inside: [30450×1 logical]
 %        pos: [30450×3 double]
