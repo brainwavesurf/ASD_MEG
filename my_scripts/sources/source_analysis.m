@@ -15,7 +15,7 @@ mrifolder = strcat( '/mri_linwarp_', num2str(6), 'mm_', 'brthr',  '0.9/');
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 %%
 % for one subj
-subj = '0106';
+subj = '0257'; %'0106';
 
 % load headmodel
 headmodel = load(strcat(data_path, subj, mrifolder, subj, '_individ_hdm_vol.mat'));
@@ -124,6 +124,14 @@ for i = 1:3
         cfg.eloreta.lambda          = 0.05;                         %0.05regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
         source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+                
+%       time: [1×801 double]
+%        dim: [29 35 30]
+%     inside: [30450×1 logical]
+%        pos: [30450×3 double]
+%     method: 'average'
+%        avg: [1×1 struct]
+%        cfg: [1×1 struct]
 
         %average parameter 'pow' for all trials 
         source_avg{i}   = source_trials{1}; 
