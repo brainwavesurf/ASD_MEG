@@ -98,13 +98,15 @@ for i = 1:3
     for t = 1:size(MEG_trials{i}.trial,1)
         
         MEG_single_trial{i}{t} = MEG_trials{i};
-        MEG_single_trial{i}{t}.avg = MEG_trials{i}.trial(t,:,:);
         
         % average over trials to make chan_time dimord for every trial
         cfg = [];
         cfg.avgoverrpt = 'yes';
         MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
-        MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial
+        
+        MEG_single_trial{i}{t}.trial = squeeze(MEG_trials{i}.trial(t,:,:));
+        MEG_single_trial{i}{t}.avg = squeeze(MEG_trials{i}.trial(t,:,:));
+        MEG_single_trial{i}{t}.cov = MEG_cov.cov; %add noise cov matrix for each trial
         
 %       time: [1×401 double]
 %      label: {102×1 cell}
@@ -112,6 +114,7 @@ for i = 1:3
 %      trial: [102×401 double]
 %        cfg: [1×1 struct]
 %     dimord: 'chan_time'
+%        avg: [102×401 double]
 %        cov: [102×102 double]
         
         % do eloreta for each trial
@@ -162,9 +165,9 @@ for i = 1:3
     cfg.method         = 'surface';
     cfg.funparameter   = 'pow';
     cfg.maskparameter  = cfg.funparameter;
-    cfg.funcolorlim    = [0.0 2.4e-16];
+    %cfg.funcolorlim    = [0.0 2.4e-16];
     cfg.funcolormap    = 'jet';
-    cfg.opacitylim     = [0.0 2.4e-16];
+    %cfg.opacitylim     = [0.0 2.4e-16];
     cfg.opacitymap     = 'rampup';
     cfg.projmethod     = 'nearest';
     cfg.surffile       = 'surface_white_both.mat'; % Cortical sheet from canonical MNI brain
