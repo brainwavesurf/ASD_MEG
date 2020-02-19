@@ -96,12 +96,13 @@ cfg.covariance        = 'yes';      % calculate covariance matrix of the data
 cfg.covariancewindow  = [0.4 1.2];  % calculate the covariance matrix for a specific time window
 MEG_cov               = ft_timelockanalysis(cfg, data_for_cov);
 
+
 % for averaging of pow
-pow     = 0;
-ntrial  = 0;
+% pow     = 0;
+% ntrial  = 0;
 
 % components for fast cond
-for i = 1:6
+for i = 1:2
     close all
     
     data_comp{i} = data_fast;
@@ -113,7 +114,23 @@ for i = 1:6
     cfg.channel           = 'MEGMAG';
     %cfg.keeptrials        = 'yes';
     MEG_trials_fast{i}         = ft_timelockanalysis(cfg, data_comp{i});
+    
     MEG_trials_fast{i}.cov     = MEG_cov.cov;
+    
+    
+%     %shuffle cov
+%     D = diag(MEG_cov.cov);	
+%     random_MEG_cov = MEG_cov.cov(randperm(size(MEG_cov.cov, 1)), :);    
+%     random_MEG_cov  = random_MEG_cov  - diag(diag(random_MEG_cov )) + diag(D);
+
+    %%take identical matrix
+    %MEG_trials_fast{i}.cov = eye(102); 
+    %check shuffled noise cov
+    %MEG_trials_fast{i}.cov = random_MEG_cov;
+    
+    %shuffle MEG_data
+    %random_MEG_trials_fast{i} =  MEG_trials_fast{i};
+    %random_MEG_trials_fast{i}.avg = MEG_trials_fast{i}.avg(randperm(size(MEG_trials_fast{i}.avg, 1)), :);
     
 %     % divide data to single trials 
 %     for t = 1:size(MEG_trials{i}.trial,1)
@@ -132,7 +149,8 @@ for i = 1:6
 %         plot(MEG_trials{i}.avg(1,:), '-r')
 %         hold on
 %         plot(MEG_single_trial{i}{t}.avg(1,:))
-        
+
+%results after timelock for each trials and avg after
 %       time: [1×401 double]
 %      label: {102×1 cell}
 %       grad: [1×1 struct]
@@ -153,7 +171,9 @@ for i = 1:6
         cfg.channel                 = 'MEGMAG';
         %source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
         source_trials_fast{i}       = ft_sourceanalysis(cfg, MEG_trials_fast{i});
-                
+        %source_changed_fast{i}       = ft_sourceanalysis(cfg, random_MEG_trials_fast{i});   
+        
+%results for source for each trials       
 %       time: [1×401 double]
 %        dim: [29 35 30]
 %     inside: [30450×1 logical]
@@ -207,8 +227,8 @@ for i = 1:6
 
 
 % for averaging parameter 'pow' for all trials
-pow     = 0;
-ntrial  = 0;
+% pow     = 0;
+% ntrial  = 0;
 
 % components for slow cond
 for i = 1:6
@@ -223,8 +243,18 @@ for i = 1:6
     cfg.channel           = 'MEGMAG';
     %cfg.keeptrials        = 'yes';
     MEG_trials_slow{i}         = ft_timelockanalysis(cfg, data_comp{i});
-    MEG_trials_slow{i}.cov     = MEG_cov.cov;
+    %MEG_trials_slow{i}.cov     = MEG_cov.cov;
     
+    
+    %check shuffled noise cov
+    %MEG_trials_slow{i}.cov = random_MEG_cov;
+    
+    %shuffle MEG_data
+%     random_MEG_trials_slow{i} =  MEG_trials_slow{i};
+%     random_MEG_trials_slow{i}.avg = MEG_trials_slow{i}.avg(randperm(size(MEG_trials_slow{i}.avg, 1)), :);
+% %%take identical matrix    
+% MEG_trials_slow{i}.cov = eye(102); 
+  
 %     % divide data to single trials 
 %     for t = 1:size(MEG_trials{i}.trial,1)
 %         
@@ -245,32 +275,38 @@ for i = 1:6
         cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
         cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
         cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
-        cfg.eloreta.lambda          = 3;                         %regularisation parameter - try different values (3)
+        cfg.eloreta.lambda          = 0.05;                         %regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
         %source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
         source_trials_slow{i}       = ft_sourceanalysis(cfg, MEG_trials_slow{i});
-%       
+        %source_changed_slow{i}       = ft_sourceanalysis(cfg, random_MEG_trials_slow{i});   
+        
+
 %         source_avg{i} = source_trials{1};
 %         pow       = (pow + source_trials{t}.avg.pow)/(ntrial + t);
 %     
 end
 
-for i = 1:6
+for c = 1:6
 % replace pow with difference between power in two conditions
-    source_diff{i} = source_trials_fast{i};
-    source_diff{i}.avg.pow = source_trials_fast{i}.avg.pow - source_trials_slow{i}.avg.pow;
+    source_diff{c} = source_trials_fast{1};
+    %source_diff{c}.avg.pow = source_changed_fast{1}.avg.pow - source_changed_slow{1}.avg.pow;
+    source_diff{c}.avg.pow = source_trials_fast{i}.avg.pow - source_trials_slow{i}.avg.pow;
 
     % interpolate data
     cfg            = [];
     cfg.parameter  = 'pow';
     %interpolate{i}    = ft_sourceinterpolate(cfg, source_trials_fast{i}, mri.mri_orig_realigned);
-    interpolate{i}    = ft_sourceinterpolate(cfg, source_diff{i}, mri.mri_orig_realigned);
+    interpolate{i}    = ft_sourceinterpolate(cfg, source_diff{c}, mri.mri_orig_realigned);
 
     % plot ortho
     cfg = [];
     cfg.method        = 'ortho';
     cfg.funparameter  = 'pow';
     ft_sourceplot(cfg,interpolate{i});
+    
+    
+    %saveas(figure(2), [savepath, subj, '/', subj, '_csp_ortho_scp1fast_csp6slow.jpeg']);
 end
     
 %     % spatially normalize the anatomy and functional data to MNI coordinates
@@ -293,7 +329,7 @@ end
 %     view ([45 30])
 %     
 %     %save figires
-%     saveas(figure(1), [savepath, subj, '/', subj, '_csp_ortho_comp_', num2str(i),'.jpeg']);
+     %saveas(figure(2), [savepath, subj, '/', subj, '_csp_ortho_scp1fast_csp6slow', num2str(i),'.jpeg']);
 %     saveas(figure(2), [savepath, subj, '/', subj, '_csp_surface_comp_', num2str(i),'.jpeg']);
 % end
 % 
