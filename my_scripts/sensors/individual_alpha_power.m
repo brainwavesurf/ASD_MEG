@@ -26,8 +26,8 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 
 %loop for all subjects
 for s=1: size (SUBJ_NT,1)
-    subj = SUBJ_NT (s,:);
-    
+    subj = SUBJ_NT(s,:);
+    close all
     load(strcat('/net/server/data/Archive/aut_gamma/orekhova/KI/Results_Alpha_and_Gamma/', subj, '/DICS_6conditions/', subj, '_alpha_sensor_spectr.mat'));
     savemegto = strcat(savepath, subj); 
     
@@ -51,7 +51,6 @@ for s=1: size (SUBJ_NT,1)
     alpha_medium_grad_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_grad{2});
     alpha_fast_grad_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_grad{3});
     
-    
     power_slow_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{1}); 
     power_medium_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{2}); 
     power_fast_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{3}); 
@@ -71,20 +70,46 @@ for s=1: size (SUBJ_NT,1)
 end
 
 
+% combine results for ASD
+isi_mag_1 = [alpha_slow_mag', alpha_medium_mag', alpha_fast_mag', power_slow_mag', power_medium_mag' power_fast_mag'];
+isi_grad_1 = [alpha_slow_grad', alpha_medium_grad', alpha_fast_grad', power_slow_grad', power_medium_grad', power_fast_grad'];
+post_mag_1 = [alpha_slow_mag_post', alpha_medium_mag_post', alpha_fast_mag_post', power_slow_mag_post', power_medium_mag_post', power_fast_mag_post'];
+post_grad_1 = [alpha_slow_grad_post', alpha_medium_grad_post', alpha_fast_grad_post', power_slow_grad_post', power_medium_grad_post', power_fast_grad_post'];
 
-% combine results for three conditions
-isi_mag = [alpha_slow_mag', alpha_medium_mag', alpha_fast_mag', power_slow_mag', power_medium_mag', power_fast_mag'];
-isi_grad = [alpha_slow_grad', alpha_medium_grad', alpha_fast_grad', power_slow_grad', power_medium_grad', power_fast_grad'];
-post_mag = [alpha_slow_mag_post', alpha_medium_mag_post', alpha_fast_mag_post', power_slow_mag_post', power_medium_mag_post', power_fast_mag_post'];
-post_grad = [alpha_slow_grad_post', alpha_medium_grad_post', alpha_fast_grad_post', power_slow_grad_post', power_medium_grad_post', power_fast_grad_post'];
+% combine results for NT
+isi_mag_2 = [alpha_slow_mag', alpha_medium_mag', alpha_fast_mag', power_slow_mag', power_medium_mag', power_fast_mag'];
+isi_grad_2 = [alpha_slow_grad', alpha_medium_grad', alpha_fast_grad', power_slow_grad', power_medium_grad', power_fast_grad'];
+post_mag_2 = [alpha_slow_mag_post', alpha_medium_mag_post', alpha_fast_mag_post', power_slow_mag_post', power_medium_mag_post', power_fast_mag_post'];
+post_grad_2 = [alpha_slow_grad_post', alpha_medium_grad_post', alpha_fast_grad_post', power_slow_grad_post', power_medium_grad_post', power_fast_grad_post'];
 
+%for 8-13Hz
+isi_mag = cat(1,isi_mag_1,isi_mag_2);
+isi_grad = cat(1,isi_grad_1,isi_grad_2);
+post_mag = cat(1,post_mag_1,post_mag_2);
+post_grad = cat(1,post_grad_1,post_grad_2);
 
-%save as csv
-filename = strcat(savepath, '1_results/individual_alpha_isi_mag_NT.csv');
+%for 10-17Hz
+isi_mag1 = cat(1,isi_mag_1(:,4:6),isi_mag_2(:,4:6));
+isi_grad1 = cat(1,isi_grad_1(:,4:6),isi_grad_2(:,4:6));
+post_mag1 = cat(1,post_mag_1(:,4:6),post_mag_2(:,4:6));
+post_grad1 = cat(1,post_grad_1(:,4:6),post_grad_2(:,4:6));
+
+%save as csv for 8-13
+filename = strcat(savepath, '1_results/individual_alpha_isi_mag.csv');
 csvwrite(filename, isi_mag);
-filename = strcat(savepath, '1_results/individual_alpha_isi_grad_NT.csv');
+filename = strcat(savepath, '1_results/individual_alpha_isi_grad.csv');
 csvwrite(filename, isi_grad);
-filename = strcat(savepath, '1_results/individual_alpha_post_mag_NT.csv');
+filename = strcat(savepath, '1_results/individual_alpha_post_mag.csv');
 csvwrite(filename, post_mag);
-filename = strcat(savepath, '1_results/individual_alpha_post_grad_NT.csv');
+filename = strcat(savepath, '1_results/individual_alpha_post_grad.csv');
 csvwrite(filename, post_grad);
+
+%save as csv for 10-17
+filename = strcat(savepath, '1_results/individual_alpha_isi_mag_cluster.csv');
+csvwrite(filename, isi_mag1);
+filename = strcat(savepath, '1_results/individual_alpha_isi_grad_cluster.csv');
+csvwrite(filename, isi_grad1);
+filename = strcat(savepath, '1_results/individual_alpha_post_mag_cluster.csv');
+csvwrite(filename, post_mag1);
+filename = strcat(savepath, '1_results/individual_alpha_post_grad_cluster.csv');
+csvwrite(filename, post_grad1);
