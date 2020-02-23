@@ -7,8 +7,7 @@ path(path, fieldtripfolder)
 ft_defaults;
 path('/home/a_shishkina/fieldtrip/external/mne/', path);
 path('/home/a_shishkina/projects/ASD_MEG/Git/ASD_MEG/my_scripts', path);
-path('/home/a_shishkina/externals/', path);
-
+path('/home/a_shishkina/projects/ASD_MEG/Git/ASD_MEG/my_scripts/sensors',path);
 savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 
@@ -24,77 +23,55 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 %without  0349; 0135; '0135'; 0379; 
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
+output_freq = zeros(size(SUBJ,1),12,4);
+output_pow = zeros(size(SUBJ,1),12,2);
+output_pow_cluster = zeros(size(SUBJ,1),12,2);
+
+
+isi_mag_idx = [1:3];
+isi_grad_idx = [4:6];
+post_mag_idx = [7:9];
+post_grad_idx = [10:12];
+
+with_trend_idx = 1;
+without_trend_idx = 2;
+slope_idx = 3;
+intercept_idx = 4;
+
 %loop for all subjects
-for s=1: size (SUBJ_NT,1)
-    subj = SUBJ_NT(s,:);
-    close all
+for s=1:size(SUBJ,1) %size(SUBJ_NT,1)
+    subj = SUBJ(s,:); %SUBJ_NT(s,:);
+   
     load(strcat('/net/server/data/Archive/aut_gamma/orekhova/KI/Results_Alpha_and_Gamma/', subj, '/DICS_6conditions/', subj, '_alpha_sensor_spectr.mat'));
     savemegto = strcat(savepath, subj); 
     
-    % calculate individual alpha freq for interstimulus mag
-    alpha_slow_mag(s) = alpha_freq(SPECTR.freq,SPECTR.isi_mag{1}); 
-    alpha_medium_mag(s) = alpha_freq(SPECTR.freq,SPECTR.isi_mag{2});
-    alpha_fast_mag(s) = alpha_freq(SPECTR.freq,SPECTR.isi_mag{3});
-    
-    % calculate individual alpha freq for interstimulus grad 
-    alpha_slow_grad(s) = alpha_freq(SPECTR.freq,SPECTR.isi_grad{1}); 
-    alpha_medium_grad(s) = alpha_freq(SPECTR.freq,SPECTR.isi_grad{2}); 
-    alpha_fast_grad(s) = alpha_freq(SPECTR.freq,SPECTR.isi_grad{3});
-    
-    % calculate individual alpha freq for stimulation mag
-    alpha_slow_mag_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_mag{1}); 
-    alpha_medium_mag_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_mag{2});
-    alpha_fast_mag_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_mag{3});
-    
-    % calculate individual alpha power for stimulation grad
-    alpha_slow_grad_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_grad{1}); 
-    alpha_medium_grad_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_grad{2});
-    alpha_fast_grad_post(s) = alpha_freq(SPECTR.freq,SPECTR.post_grad{3});
-    
-    power_slow_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{1}); 
-    power_medium_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{2}); 
-    power_fast_mag(s) = alpha_power(SPECTR.freq, SPECTR.isi_mag{3}); 
-    
-    power_slow_grad(s) = alpha_power(SPECTR.freq, SPECTR.isi_grad{1}); 
-    power_medium_grad(s) = alpha_power(SPECTR.freq, SPECTR.isi_grad{2}); 
-    power_fast_grad(s) = alpha_power(SPECTR.freq, SPECTR.isi_grad{3}); 
-    
-    power_slow_mag_post(s) = alpha_power(SPECTR.freq, SPECTR.post_mag{1}); 
-    power_medium_mag_post(s) = alpha_power(SPECTR.freq, SPECTR.post_mag{2}); 
-    power_fast_mag_post(s) = alpha_power(SPECTR.freq, SPECTR.post_mag{3}); 
-    
-    power_slow_grad_post(s) = alpha_power(SPECTR.freq, SPECTR.post_grad{1}); 
-    power_medium_grad_post(s) = alpha_power(SPECTR.freq, SPECTR.post_grad{2}); 
-    power_fast_grad_post(s) = alpha_power(SPECTR.freq, SPECTR.post_grad{3}); 
-    
+    x = SPECTR.freq;
+    y = [SPECTR.isi_mag{1};SPECTR.isi_mag{2};SPECTR.isi_mag{3};...
+        SPECTR.isi_grad{1};SPECTR.isi_grad{2};SPECTR.isi_grad{3};...
+        SPECTR.post_mag{1};SPECTR.post_mag{2};SPECTR.post_mag{3};...
+        SPECTR.post_grad{1};SPECTR.post_grad{2};SPECTR.post_grad{3}];
+
+    for i = 1:12 %through y 
+        [output_freq(s,i,with_trend_idx), output_freq(s,i,without_trend_idx), output_freq(s,i,slope_idx), output_freq(s,i,intercept_idx)] = alpha_freq(x, y(i,:));
+        [output_pow(s,i,with_trend_idx), output_pow(s,i,without_trend_idx)] = alpha_power(x, y(i,:));
+        [output_pow_cluster(s,i,with_trend_idx), output_pow_cluster(s,i,without_trend_idx)] = alpha_power_cluster(x, y(i,:));
+    end
 end
 
+%combine results 
+isi_mag     = [output_freq(:,isi_mag_idx,with_trend_idx), output_freq(:,isi_mag_idx,without_trend_idx), output_freq(:,isi_mag_idx,slope_idx), output_freq(:,isi_mag_idx,intercept_idx), ...
+               output_pow(:,isi_mag_idx,with_trend_idx), output_pow(:,isi_mag_idx,without_trend_idx), output_pow_cluster(:,isi_mag_idx,with_trend_idx), output_pow_cluster(:,isi_mag_idx,without_trend_idx)];
 
-% combine results for ASD
-isi_mag_1 = [alpha_slow_mag', alpha_medium_mag', alpha_fast_mag', power_slow_mag', power_medium_mag' power_fast_mag'];
-isi_grad_1 = [alpha_slow_grad', alpha_medium_grad', alpha_fast_grad', power_slow_grad', power_medium_grad', power_fast_grad'];
-post_mag_1 = [alpha_slow_mag_post', alpha_medium_mag_post', alpha_fast_mag_post', power_slow_mag_post', power_medium_mag_post', power_fast_mag_post'];
-post_grad_1 = [alpha_slow_grad_post', alpha_medium_grad_post', alpha_fast_grad_post', power_slow_grad_post', power_medium_grad_post', power_fast_grad_post'];
+isi_grad    = [output_freq(:,isi_grad_idx,with_trend_idx), output_freq(:,isi_grad_idx,without_trend_idx), output_freq(:,isi_grad_idx,slope_idx), output_freq(:,isi_grad_idx,intercept_idx), ...
+               output_pow(:,isi_grad_idx,with_trend_idx), output_pow(:,isi_grad_idx,without_trend_idx), output_pow_cluster(:,isi_grad_idx,with_trend_idx), output_pow_cluster(:,isi_grad_idx,without_trend_idx)];
 
-% combine results for NT
-isi_mag_2 = [alpha_slow_mag', alpha_medium_mag', alpha_fast_mag', power_slow_mag', power_medium_mag', power_fast_mag'];
-isi_grad_2 = [alpha_slow_grad', alpha_medium_grad', alpha_fast_grad', power_slow_grad', power_medium_grad', power_fast_grad'];
-post_mag_2 = [alpha_slow_mag_post', alpha_medium_mag_post', alpha_fast_mag_post', power_slow_mag_post', power_medium_mag_post', power_fast_mag_post'];
-post_grad_2 = [alpha_slow_grad_post', alpha_medium_grad_post', alpha_fast_grad_post', power_slow_grad_post', power_medium_grad_post', power_fast_grad_post'];
+post_mag    = [output_freq(:,post_mag_idx,with_trend_idx), output_freq(:,post_mag_idx,without_trend_idx), output_freq(:,post_mag_idx,slope_idx), output_freq(:,post_mag_idx,intercept_idx), ...
+               output_pow(:,post_mag_idx,with_trend_idx), output_pow(:,post_mag_idx,without_trend_idx), output_pow_cluster(:,post_mag_idx,with_trend_idx), output_pow_cluster(:,post_mag_idx,without_trend_idx)];
 
-%for 8-13Hz
-isi_mag = cat(1,isi_mag_1,isi_mag_2);
-isi_grad = cat(1,isi_grad_1,isi_grad_2);
-post_mag = cat(1,post_mag_1,post_mag_2);
-post_grad = cat(1,post_grad_1,post_grad_2);
+post_grad   = [output_freq(:,post_grad_idx,with_trend_idx), output_freq(:,post_grad_idx,without_trend_idx), output_freq(:,post_grad_idx,slope_idx), output_freq(:,post_grad_idx,intercept_idx), ...
+               output_pow(:,post_grad_idx,with_trend_idx), output_pow(:,post_grad_idx,without_trend_idx), output_pow_cluster(:,post_grad_idx,with_trend_idx), output_pow_cluster(:,post_grad_idx,without_trend_idx)];
 
-%for 10-17Hz
-isi_mag1 = cat(1,isi_mag_1(:,4:6),isi_mag_2(:,4:6));
-isi_grad1 = cat(1,isi_grad_1(:,4:6),isi_grad_2(:,4:6));
-post_mag1 = cat(1,post_mag_1(:,4:6),post_mag_2(:,4:6));
-post_grad1 = cat(1,post_grad_1(:,4:6),post_grad_2(:,4:6));
-
-%save as csv for 8-13
+%save as csv 
 filename = strcat(savepath, '1_results/individual_alpha_isi_mag.csv');
 csvwrite(filename, isi_mag);
 filename = strcat(savepath, '1_results/individual_alpha_isi_grad.csv');
@@ -103,13 +80,3 @@ filename = strcat(savepath, '1_results/individual_alpha_post_mag.csv');
 csvwrite(filename, post_mag);
 filename = strcat(savepath, '1_results/individual_alpha_post_grad.csv');
 csvwrite(filename, post_grad);
-
-%save as csv for 10-17
-filename = strcat(savepath, '1_results/individual_alpha_isi_mag_cluster.csv');
-csvwrite(filename, isi_mag1);
-filename = strcat(savepath, '1_results/individual_alpha_isi_grad_cluster.csv');
-csvwrite(filename, isi_grad1);
-filename = strcat(savepath, '1_results/individual_alpha_post_mag_cluster.csv');
-csvwrite(filename, post_mag1);
-filename = strcat(savepath, '1_results/individual_alpha_post_grad_cluster.csv');
-csvwrite(filename, post_grad1);
