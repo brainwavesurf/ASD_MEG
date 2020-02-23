@@ -1,10 +1,12 @@
-function power = alpha_power(x,y)
+function [power_with, power_without] = alpha_power(x,y)
 index = ((x>=2 & x<=5) | (x>=30 & x<=40));
 coefficients = polyfit(log(x(index)), log(y(1,(index))), 1);
 trend = polyval(coefficients, log(x));
+without = exp(log(y)) - exp(trend);
 for f = 8:13
-    without = exp(log(y)) - exp(trend);
-    power(f) = without(1,f);
+    power_with = y(1,f);
+    power_without(f) = without(1,f);
 end
-power = sum(power)/length(8:13);
+power_with = sum(power_with)*1e25/length(8:13);
+power_without = sum(power_without)*1e25/length(8:13);
 end
