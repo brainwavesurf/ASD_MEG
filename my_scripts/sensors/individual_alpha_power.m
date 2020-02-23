@@ -20,28 +20,31 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
             '0276'; '0346'; '0347'; '0351'; '0358'; '0357';...
             '0380'; '0381'; '0382'; '0383'];  
+        
 %without  0349; 0135; '0135'; 0379; 
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
+%matrix for function output
 output_freq = zeros(size(SUBJ,1),12,4);
 output_pow = zeros(size(SUBJ,1),12,2);
 output_pow_cluster = zeros(size(SUBJ,1),12,2);
 
-
+%indexes for different conditions and different channels
 isi_mag_idx = [1:3];
 isi_grad_idx = [4:6];
 post_mag_idx = [7:9];
 post_grad_idx = [10:12];
 
+%indexes for different values
 with_trend_idx = 1;
 without_trend_idx = 2;
 slope_idx = 3;
 intercept_idx = 4;
 
 %loop for all subjects
-for s=1:size(SUBJ,1) %size(SUBJ_NT,1)
-    subj = SUBJ(s,:); %SUBJ_NT(s,:);
-   
+for s=1:size(SUBJ,1) 
+    
+    subj = SUBJ(s,:); 
     load(strcat('/net/server/data/Archive/aut_gamma/orekhova/KI/Results_Alpha_and_Gamma/', subj, '/DICS_6conditions/', subj, '_alpha_sensor_spectr.mat'));
     savemegto = strcat(savepath, subj); 
     
