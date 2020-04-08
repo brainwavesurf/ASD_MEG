@@ -8,9 +8,9 @@ fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
 ft_defaults;
 path('/home/a_shishkina/fieldtrip/external/mne/', path);
+realdatapath = '/net/server/data/Archive/aut_gamma/orekhova/KI/SUBJECTS/';
+savepath = '/net/server/data/Archive/aut_gamma/orekhova/KI/Scripts_bkp/Shishkina/KI/Results_Alpha_and_Gamma/';
 
-realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
-savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
 
 SUBJ_NT = [ '0101'; '0102'; '0103'; '0104'; '0105'; '0135'; '0136';...  
             '0137'; '0138'; '0140'; '0158'; '0162'; '0163'; '0178';...
@@ -20,17 +20,16 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
             '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
-%without '0357';
+
 SUBJ = [SUBJ_NT; SUBJ_ASD];
 
 for s=1: size (SUBJ,1)
-   
+    close all
     subj = SUBJ (s,:); 
     savemegto = strcat(savepath, subj);
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
     %load alpha epochs
-    load(strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat'));
+    load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
 
     cfg = [];
     cfg.channel = 'MEGMAG';
@@ -93,45 +92,4 @@ for s=1: size (SUBJ,1)
 
     filename = strcat(savepath, subj, '/', subj, '_csp_analysis.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
-end   
-    %% plot results 
-    %oscillatory 
-    for i = 1:6
-    figure(1)
-    subplot(2,3,i)
-    plot(Xcsp_fast(1,:,i), 'r')
-    hold on
-    plot(Xcsp_slow(1,:,i), 'b')
-    legend('fast','slow')
-    xlim([0 401])
-    title(['compoment', num2str(i)])
-    end
-    
-    %topo
-    slow_label = zeros(ntrial_slow, 1); slow_label(:) = 1;
-    fast_label = zeros(ntrial_fast, 1); fast_label(:) = 2;
-
-    data = ft_appenddata(cfg, data_slow, data_fast); %append two structural data
-
-    cfg = [];
-    cfg.method = 'csp';
-    cfg.csp.classlabels = [slow_label; fast_label]; % vector that assigns a trial to class 1 or 2
-    cfg.csp.numfilters  = 10; % the number of spatial filters to use
-    [comp] = ft_componentanalysis(cfg, data);
-    comp.topo = pattern_ICcsp_slowVSfast;
-    comp.mixing = W1;
-    comp.unmixing = A1;
-
-    figure(2)
-    cfg = [];
-    cfg.component = 1:6;       % the component(s) that should be plotted
-    cfg.layout    = 'neuromag306mag.lay'; % the layout file that should be used for plotting
-    cfg.comment   = 'no';
-    ft_topoplotIC(cfg, comp)
-
-%     filename = strcat(savepath, subj, '/', subj, '_csp_components.jpeg');
-%     saveas(figure(1), filename);
-%     filename = strcat(savepath, subj, '/', subj, '_csp_components_topo.jpeg');
-%     saveas(figure(2), filename);
-end
-% 
+end 
