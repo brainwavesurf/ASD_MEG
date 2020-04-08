@@ -9,8 +9,8 @@ path(fieldtripfolder, path);
 ft_defaults;
 path('/home/a_shishkina/fieldtrip/external/mne/', path);
 
-realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
-savepath = '/home/a_shishkina/data/KI/Results_Alpha_and_Gamma/';
+realdatapath = '/net/server/data/Archive/aut_gamma/orekhova/KI/SUBJECTS/';
+savepath = '/net/server/data/Archive/aut_gamma/orekhova/KI/Scripts_bkp/Shishkina/KI/Results_Alpha_and_Gamma/';
 
 %%
 %load subj list
@@ -29,13 +29,13 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 for s=1:size (SUBJ,1)
 
     subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj);
+    savemegto = strcat(savepath, subj, '/');
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
  
     %% Load unfiltered epochs and divide them according to preceding conditions
     
     % load raw fif data after ICA 
-    fiff_file = strcat(realdatapath, subj, '/ICA_nonotch_crop/', subj, '_rings_ICA_transstandard-raw.fif');
+    fiff_file = strcat(realdatapath, subj, '/ICA_nonotch_crop/', subj, '_rings_ICA_raw.fif');
     hdrraw = ft_read_header(fiff_file);
     
     % load info about events
@@ -68,7 +68,7 @@ for s=1:size (SUBJ,1)
     epochs = ft_preprocessing(cfg);
     
     %% load info about preceding events in order to select the epochs later on
-    load ([ savemegto, '/', subj, '_info.mat'])
+    load ([savemegto, '/', subj, '_info.mat'])
     
     slow_ind = find(allinfo.prev_stim_type==2); %slow
     medium_ind = find(allinfo.prev_stim_type==4); %medium
@@ -99,8 +99,8 @@ for s=1:size (SUBJ,1)
     cfg.trials = fast_ind;
     cfg.latency = [0.4 1.2];
     fast_alpha_post = ft_selectdata(cfg, epochs);
-    
-    filename = strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat');
+     
+    filename = strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat');
     save(filename, 'epochs', 'slow_alpha_bp', 'medium_alpha_bp', 'fast_alpha_bp', 'slow_alpha_post', 'medium_alpha_post', 'fast_alpha_post');
     
 end
