@@ -8,8 +8,7 @@ ft_defaults;
 path('/home/a_shishkina/externals/files', path);
 path('/home/a_shishkina/fieldtrip/template/anatomy', path)
 
-realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
-data_path = '/home/a_shishkina/data/KI/FT_beamformer/';
+realdatapath = '/net/server/data/Archive/aut_gamma/orekhova/KI/SUBJECTS/';
 savepath = '/net/server/data/Archive/aut_gamma/orekhova/KI/Scripts_bkp/Shishkina/KI/Results_Alpha_and_Gamma/';
 %%
 
@@ -23,7 +22,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
             '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
-%without '0357';
+
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
 %% loop for all subjects
@@ -33,11 +32,9 @@ for s=1: size (SUBJ,1)
     subj = SUBJ (s,:); 
     
     savemegto = strcat(savepath, subj);
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     
-
     % read preprocessed data, 10-17 Hz bandpass
-    bp = load(strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat'));
+    bp = load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
 
     % select mag epochs for slow and fast conditions in interstimuli [-0.8 0] and stim [0.4 1.2] period
     cfg = [];
