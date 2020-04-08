@@ -6,12 +6,10 @@ path(fieldtripfolder, path);
 ft_defaults;
 
 path('/home/a_shishkina/externals/files', path);
-path('/home/a_shishkina/data/KI/SUBJECTS/0106/ICA_nonotch_crop', path);
 path('/home/a_shishkina/fieldtrip/template/anatomy', path)
 
 realdatapath = '/home/a_shishkina/data/KI/SUBJECTS/';
 data_path = '/home/a_shishkina/data/KI/FT_beamformer/';
-mrifolder = strcat( '/mri_linwarp_', num2str(6), 'mm_', 'brthr',  '0.9/');
 savepath = '/net/server/data/Archive/aut_gamma/orekhova/KI/Scripts_bkp/Shishkina/KI/Results_Alpha_and_Gamma/';
 %%
 
@@ -32,7 +30,7 @@ SUBJ = [SUBJ_ASD; SUBJ_NT];
 for s=1: size (SUBJ,1)
     
     close all
-    subj = '0106'; %'SUBJ (s,:); 
+    subj = SUBJ (s,:); 
     
     savemegto = strcat(savepath, subj);
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
