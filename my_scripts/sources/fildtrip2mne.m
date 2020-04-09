@@ -26,10 +26,10 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
 %% loop for all subjects
-for s=1: size (SUBJ,1)
+for s=1: size(SUBJ,1)
     
     close all
-    subj = SUBJ (s,:); 
+    subj = SUBJ(s,:); 
     
     savemegto = strcat(savepath, subj);
     
@@ -46,28 +46,28 @@ for s=1: size (SUBJ,1)
     load(strcat(savepath, subj, '/', subj, '_csp_analysis.mat'));
 
       % converted the Xcsp_fast and Xcsp_slow to MEG time series
-    for s = 1:6
+    for n = 1:6
         A_mat = A1;
         for i = 1:6
-            if i~=s
+            if i~=n
                 A_mat(i,:) = 0;
             end
-            A{s} = A_mat; % leave only one component, the rest ones are 0s 
+            A{n} = A_mat; % leave only one component, the rest ones are 0s 
         end
         %for fast
         trial_fast = zeros(size(Xcsp_fast,1), size(Xcsp_fast,2), 102);
         for j = 1:size(Xcsp_fast,1)
-            trial_fast(j,:,:) = squeeze(Xcsp_fast(j,:,:))*A{s};
+            trial_fast(j,:,:) = squeeze(Xcsp_fast(j,:,:))*A{n};
             csp_data_fast{j} = squeeze(trial_fast(j,:,:))';
         end
-        fast{s} = csp_data_fast; % first three components for fast cond
+        fast{n} = csp_data_fast; % first three components for fast cond
         %for slow
         trial_slow = zeros(size(Xcsp_slow,1), size(Xcsp_slow,2), 102);
         for j = 1:size(Xcsp_slow,1)
-            trial_slow(j,:,:) = squeeze(Xcsp_slow(j,:,:))*A{s};
+            trial_slow(j,:,:) = squeeze(Xcsp_slow(j,:,:))*A{n};
             csp_data_slow{j} = squeeze(trial_slow(j,:,:))';
         end
-        slow{s} = csp_data_slow; % last three components for slow cond
+        slow{n} = csp_data_slow; % last three components for slow cond
     end
 
     epochs_fast1 = data_fast; epochs_fast1.trial = fast{1};
