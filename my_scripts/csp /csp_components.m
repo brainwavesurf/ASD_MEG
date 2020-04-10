@@ -1,7 +1,5 @@
 % comments for DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
-% ntrial_slow = 64 trials, ntrial_fast = 65           
-
-clear all;
+% ntrial_slow = 64 trials, ntrial_fast = 65
 close all;
 
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
