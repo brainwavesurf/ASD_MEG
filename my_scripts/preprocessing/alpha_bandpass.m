@@ -1,7 +1,5 @@
 %% Apply band-pass filter to the whole continious recording
 % Cut epochs [-0.8 0] as interstimuli and [0.4 1.2] as the stimulation interval
-
-clear all;
 close all;
 
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
@@ -23,7 +21,7 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0164'; '0253'; '0254'; '0256'; '0273'; '0274'; '0275';...
             '0276'; '0346'; '0347'; '0349'; '0351'; '0358';...
             '0380'; '0381'; '0382'; '0383'];  
-%without '0357';
+
 SUBJ = [SUBJ_ASD; SUBJ_NT];
 
 for s=1:size (SUBJ,1)
@@ -48,11 +46,11 @@ for s=1:size (SUBJ,1)
     % trl:   start, end and offset (interval before the event)
     pre = -1.0* hdrraw.Fs ;
     post = 1.2* hdrraw.Fs ;
-    trl=[];
-    for i=1:size (events,1)
-        trl(i, 1)=(events(i,1)+pre) ;
-        trl(i, 2)=(events(i,1)+post) ;
-        trl(i, 3)= -1.0*hdrraw.Fs ; % offset
+    trl = zeros(size(events,1),4);
+    for i=1:size(events,1)
+        trl(i, 1) = (events(i,1)+pre) ;
+        trl(i, 2) = (events(i,1)+post) ;
+        trl(i, 3) = -1.0*hdrraw.Fs ; % offset
         trl(i, 4) = events(i,3); % stimulus_value;
     end
 
