@@ -1,5 +1,5 @@
 %Save fieldtrip data fo mne python
-clear all
+close all;
 % path info
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
@@ -41,11 +41,15 @@ for s=1: size(SUBJ,1)
     cfg.channel = 'megmag';
     data_slow = ft_selectdata(cfg, bp.slow_alpha_bp);
     data_fast = ft_selectdata(cfg, bp.fast_alpha_bp); 
-
     % load csp data for two conditions
     load(strcat(savepath, subj, '/', subj, '_csp_analysis.mat'));
 
-      % converted the Xcsp_fast and Xcsp_slow to MEG time series
+    % converted the Xcsp_fast and Xcsp_slow to MEG time series
+    A = cell(1,6);
+    csp_data_fast = cell(1,size(Xcsp_fast,1));
+    fast = cell(1,6);
+    csp_data_slow = cell(1,size(Xcsp_slow,1));
+    slow = cell(1,6);
     for n = 1:6
         A_mat = A1;
         for i = 1:6
