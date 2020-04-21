@@ -1,5 +1,6 @@
-%% to apply an hp = 35 filter to the whole continuous recording and cut for epochs according slow/medium/fast condition 
-%and interstimuli and stimulation interval
+%% to apply a band-pass = 2-40 Hz filter to the whole continuous recording 
+%to cut epochs according slow/medium/fast condition 
+%in the interstimulus [-0.8 0] and the stimulation [0.4 1.2] intervals
 %%
 close all;
 
@@ -7,7 +8,7 @@ fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
 ft_defaults;
 path('/home/a_shishkina/fieldtrip/external/mne/', path);
-
+pathfrom = '/net/server/data/Archive/aut_gamma/orekhova/KI/';
 realdatapath = '/net/server/data/Archive/aut_gamma/orekhova/KI/SUBJECTS/';
 savepath = '/net/server/data/Archive/aut_gamma/orekhova/KI/Scripts_bkp/Shishkina/KI/Results_Alpha_and_Gamma/';
 
@@ -24,14 +25,10 @@ SUBJ_ASD = ['0106'; '0107'; '0139'; '0141'; '0159'; '0160'; '0161';...
             '0380'; '0381'; '0382'; '0383'];  
 
 SUBJ = [SUBJ_ASD; SUBJ_NT];
-%SUBJ = ['0102'];
+
 for s=1:size (SUBJ,1)
 
     subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj, '/');
-    epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
- 
-    %% Load unfiltered epochs and divide them according to preceding conditions
     
     % load raw fif data after ICA 
     fiff_file = strcat(realdatapath, subj, '/ICA_nonotch_crop/', subj, '_rings_ICA_raw.fif');
@@ -67,24 +64,36 @@ for s=1:size (SUBJ,1)
     epochs = ft_preprocessing(cfg);
     
     %% load info about preceding events in order to select the epochs later on
-    load ([savemegto, '/', subj, '_info.mat'])
+    load(strcat(pathfrom, '/Results_Alpha_and_Gamma/', subj, '/',  subj, '_info.mat'))
     
-    slow_ind = find(allinfo.prev_stim_type==2); %slow
-    medium_ind = find(allinfo.prev_stim_type==4); %medium
-    fast_ind = find(allinfo.prev_stim_type==8); %fast
+    slow_ind = find(ALLINFO.stim_type_previous_tr==2); %slow
+    medium_ind = find(ALLINFO.stim_type_previous_tr==4); %medium
+    fast_ind = find(ALLINFO.stim_type_previous_tr==8); %fast
     
+    %select epochs in different conditions
+    cfg = [];
+    cfg.trials = slow_ind;
+    slow_alpha_epochs = ft_selectdata(cfg, epochs); 
+    
+    cfg.trials = medium_ind;
+    medium_alpha_epochs = ft_selectdata(cfg, epochs);  
+    
+    cfg.trials = fast_ind;
+    fast_alpha_epochs = ft_selectdata(cfg, epochs);
+    
+    %select interstimulus and stimulation intervals
     cfg = [];
     cfg.trials = slow_ind;
     cfg.latency = [-0.8 0];
-    slow_alpha_bp = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
+    slow_alpha_isi = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
     
     cfg.trials = medium_ind;
     cfg.latency = [-0.8 0];
-    medium_alpha_bp = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
+    medium_alpha_isi = ft_selectdata(cfg, epochs); %extraxt trials after slow stimuli
     
     cfg.trials = fast_ind;
     cfg.latency = [-0.8 0];
-    fast_alpha_bp = ft_selectdata(cfg, epochs); %extraxt trials after fast stimuli
+    fast_alpha_isi = ft_selectdata(cfg, epochs); %extraxt trials after fast stimuli
     
     cfg = [];
     cfg.trials = slow_ind;
@@ -100,6 +109,6 @@ for s=1:size (SUBJ,1)
     fast_alpha_post = ft_selectdata(cfg, epochs);
      
     filename = strcat(savepath, subj, '/', subj, '_preproc_alpha_2_40_epochs.mat');
-    save(filename, 'epochs', 'slow_alpha_bp', 'medium_alpha_bp', 'fast_alpha_bp', 'slow_alpha_post', 'medium_alpha_post', 'fast_alpha_post');
-    
+    save(filename, 'epochs', 'slow_alpha_epochs','medium_alpha_epochs','fast_alpha_epochs', ...
+        'slow_alpha_isi', 'medium_alpha_isi', 'fast_alpha_isi', 'slow_alpha_post', 'medium_alpha_post', 'fast_alpha_post');
 end
