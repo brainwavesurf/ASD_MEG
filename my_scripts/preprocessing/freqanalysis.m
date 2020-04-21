@@ -67,6 +67,7 @@ for s=1: size (SUBJ,1)
     cfg.t_ftimwin  = 3./cfg.foi; 
     cfg.toi        = -0.8:0.05:1;
     cfg.pad        = 'nextpow2';
+    cfg.keeptrials = 'yes';
     conv_fast_mag  = ft_freqanalysis(cfg, epo_fast_mag);
     conv_slow_mag  = ft_freqanalysis(cfg, epo_slow_mag);
     conv_fast_grad = ft_freqanalysis(cfg, epo_fast_grad);
@@ -84,32 +85,38 @@ for s=1: size (SUBJ,1)
     ft_multiplotTFR(cfg, conv_fast_mag);
     saveas(figure(1),[savepath, '/1_results/freqanalysis/', subj, '_TFR_trial_all_chan_mag.jpeg']);
     
+    cfg = [];
+    cfg.avgoverchan = 'yes';
+    avg_conv_fast_mag = ft_selectdata(cfg, conv_fast_mag);
+    avg_conv_slow_mag = ft_selectdata(cfg, conv_slow_mag);
+    
     %time-frequency plot of the one channel for the one subject
     cfg              = [];
     cfg.baseline     = [0.4 1.2];
-    cfg.maskstyle    = 'saturation';
-    cfg.zlim         = [-6e-26 6e-26];
-    cfg.channel      = 'MEG1841';
+    cfg.zlim         = [0 12e-27];
     cfg.interactive  = 'no';
+    cfg.masknans     = 'no';
     cfg.layout       = 'neuromag306mag_helmet.mat';
+    cfg.trials       = 50;
     
     figure(2)
     subplot(1,2,1)
-    ft_singleplotTFR(cfg, conv_slow_mag);
+    ft_singleplotTFR(cfg, avg_conv_slow_mag);
     title('"slow"')
     xlabel('time, s')
     ylabel('frequency, Hz')
     ylim([4 20])
     axis image; axis square; 
     
+    cfg.trials = 14;
     subplot(1,2,2)
-    ft_singleplotTFR(cfg, conv_fast_mag);
+    ft_singleplotTFR(cfg, avg_conv_fast_mag);
     title('"fast"')
     xlabel('time, s')
     ylabel('frequency, Hz')
     ylim([4 20])
     axis image; axis square; 
-    saveas(figure(2),[savepath, '/1_results/freqanalysis/', subj, '_TFR_trial_one_chan_mag.jpeg']);
+    saveas(figure(2),[savepath, '/1_results/freqanalysis/', subj, '_TFR_one_trial_avgoverchan_mag.jpeg']);
     
     %% spectral analysis with Fourier using Hanning taper
 
