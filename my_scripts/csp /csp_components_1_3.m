@@ -1,7 +1,7 @@
 % comments for DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
 % ntrial_slow = 64 trials, ntrial_fast = 65
 close all;
-
+tStart = tic;
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
 ft_defaults;
@@ -24,15 +24,14 @@ SUBJ = [SUBJ_NT; SUBJ_ASD];
 for s=1: size (SUBJ,1)
     close all
     subj = SUBJ (s,:); 
-    savemegto = strcat(savepath, subj);
     
     %load alpha epochs
     load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
 
     cfg = [];
     cfg.channel = 'MEGMAG';
-    data_slow = ft_selectdata(cfg, slow_alpha_bp); %slow_alpha_post
-    data_fast = ft_selectdata(cfg, fast_alpha_bp); %fast_alpha_post
+    data_slow = ft_selectdata(cfg, slow_alpha_isi); 
+    data_fast = ft_selectdata(cfg, fast_alpha_isi); 
 
     ntrial_slow = size(data_slow.trial,2); %number of trials in the slow condition: 64
     ntrial_fast = size(data_fast.trial,2); %number of trials in the fast condition: 65
@@ -88,6 +87,8 @@ for s=1: size (SUBJ,1)
     Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 6 x nsampl x ntrial = [6 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
-    filename = strcat(savepath, subj, '/', subj, '_csp_analysis.mat');
+    filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1-3.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
+    
 end 
+tEnd = toc(tStart);

@@ -79,11 +79,49 @@ for s=1: size (SUBJ,1)
     cfg.baselinetype = 'absolute';
     cfg.zlim         = 'maxabs';
     cfg.showlabels   = 'yes';
-    cfg.layout       = 'neuromag306mag_helmet.mat';
+    cfg.layout       = 'neuromag306planar_helmet.mat';
     figure
     colorbar;
-    ft_multiplotTFR(cfg, conv_fast_mag);
+    ft_multiplotTFR(cfg, conv_fast_grad);
     saveas(figure(1),[savepath, '/1_results/freqanalysis/', subj, '_TFR_trial_all_chan_mag.jpeg']);
+    
+    posterior = {'MEG1932',  'MEG1922', 'MEG2042',  'MEG2032',  'MEG2112', 'MEG2122',  'MEG2342', 'MEG2332',  'MEG1732', 'MEG1942', 'MEG1912', 'MEG2012', 'MEG2022', 'MEG2312', 'MEG2322', 'MEG2512', ...
+                 'MEG1933',  'MEG1923', 'MEG2043',  'MEG2033',  'MEG2113', 'MEG2123',  'MEG2343', 'MEG2333',  'MEG1733', 'MEG1943', 'MEG1913', 'MEG2013', 'MEG2023', 'MEG2313', 'MEG2323', 'MEG2513'};
+    
+    cfg = [];
+    cfg.channel = posterior;
+    cfg.avgoverchan = 'yes';
+    avg_conv_fast_grad = ft_selectdata(cfg, conv_fast_grad);
+    avg_conv_slow_grad = ft_selectdata(cfg, conv_slow_grad);
+    
+    %time-frequency plot of the one channel for the one subject
+    cfg              = [];
+    cfg.baseline     = [0.4 1.2];
+    %cfg.zlim         = [0 12e-27];
+    cfg.interactive  = 'no';
+    cfg.masknans     = 'no';
+    cfg.layout       = 'neuromag306planar_helmet.mat';
+    cfg.trials       = 50;
+    
+    figure(2)
+    subplot(1,2,1)
+    ft_singleplotTFR(cfg, avg_conv_slow_grad);
+    title('"slow"')
+    xlabel('time, s')
+    ylabel('frequency, Hz')
+    ylim([4 20])
+    axis image; axis square; 
+    
+    cfg.trials = 14;
+    subplot(1,2,2)
+    ft_singleplotTFR(cfg, avg_conv_fast_grad);
+    title('"fast"')
+    xlabel('time, s')
+    ylabel('frequency, Hz')
+    ylim([4 20])
+    axis image; axis square; 
+    saveas(figure(2),[savepath, '/1_results/freqanalysis/', subj, '_TFR_one_trial_avgover_poster_chan_grad.jpeg']);
+    
     
     cfg = [];
     cfg.avgoverchan = 'yes';

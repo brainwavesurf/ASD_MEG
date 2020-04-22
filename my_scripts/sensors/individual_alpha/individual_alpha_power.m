@@ -83,3 +83,4 @@ filename = strcat(savepath, '1_results/individual_alpha_post_mag.csv');
 csvwrite(filename, post_mag);
 filename = strcat(savepath, '1_results/individual_alpha_post_grad.csv');
 csvwrite(filename, post_grad);
+

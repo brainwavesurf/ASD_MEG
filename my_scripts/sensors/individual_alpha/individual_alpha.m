@@ -60,7 +60,7 @@ for s=1: size (SUBJ,1)
     fast_avg_mag{s} = ft_freqanalysis(cfg, epo_slow_mag);
     
     % calculate individual alpha power
-    alpha_slow_grad{{s} = alpha_power(slow_avg_grad{s}.freq,slow_avg_grad{s}.powspctrm);
+    alpha_slow_grad{s} = alpha_power(slow_avg_grad{s}.freq,slow_avg_grad{s}.powspctrm);
     alpha_fast_grad{s} = alpha_power(fast_avg_grad{s}.freq,fast_avg_grad{s}.powspctrm);
     alpha_slow_mag{s} = alpha_power(slow_avg_mag{s}.freq,slow_avg_mag{s}.powspctrm);
     alpha_fast_mag{s} = alpha_power(fast_avg_mag{s}.freq,fast_avg_mag{s}.powspctrm);

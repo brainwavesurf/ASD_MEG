@@ -1,5 +1,5 @@
 function [trend] = plot_with_trend(x,y,type,sensor,cond,subj)
-index = (x<=5 | x>=30);
+index = ((x>=2 & x<=5) | (x>=30 & x<=40));
 switch type; 
     case {'original'}
         titlename = [', FFT power, ', sensor];

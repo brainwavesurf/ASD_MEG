@@ -1,5 +1,6 @@
 %Source localization of MEG data after CSP by 'eloreta' for one subject
 clear all
+close all
 % path info
 fieldtripfolder = '/home/a_shishkina/fieldtrip/';
 path(fieldtripfolder, path);
@@ -47,7 +48,7 @@ for s=1: size (SUBJ,1)
     % read preprocessed data, 10-14 Hz bandpass
     epofolder = strcat(realdatapath, subj, '/ICA_nonotch_crop', '/epochs/');
     bp = load(strcat(epofolder, subj, '_preproc_alpha_bp_epochs.mat'));
-
+    
     % select mag epochs for slow and fast conditions in interstimuli [-0.8 0] and stim [0.4 1.2] period
     cfg = [];
     cfg.channel = 'MEGMAG';
@@ -97,9 +98,9 @@ cfg.covariancewindow  = [0.4 1.2];  % calculate the covariance matrix for a spec
 MEG_cov               = ft_timelockanalysis(cfg, data_for_cov);
 
 
-% for averaging of pow
-% pow     = 0;
-% ntrial  = 0;
+%for averaging of pow
+pow     = 0;
+ntrial  = 0;
 
 % components for fast cond
 for i = 1:2
@@ -112,10 +113,9 @@ for i = 1:2
     cfg                   = [];
     cfg.preproc.demean    = 'yes';    % enable demean to remove mean value from each single trial
     cfg.channel           = 'MEGMAG';
-    %cfg.keeptrials        = 'yes';
+    cfg.keeptrials        = 'yes';
     MEG_trials_fast{i}         = ft_timelockanalysis(cfg, data_comp{i});
-    
-    MEG_trials_fast{i}.cov     = MEG_cov.cov;
+    %MEG_trials_fast{i}.cov     = MEG_cov.cov;
     
     
 %     %shuffle cov
@@ -132,19 +132,19 @@ for i = 1:2
     %random_MEG_trials_fast{i} =  MEG_trials_fast{i};
     %random_MEG_trials_fast{i}.avg = MEG_trials_fast{i}.avg(randperm(size(MEG_trials_fast{i}.avg, 1)), :);
     
-%     % divide data to single trials 
-%     for t = 1:size(MEG_trials{i}.trial,1)
-%         
-%         MEG_single_trial{i}{t} = MEG_trials{i};
-%         
-%         % average over trials to make chan_time dimord for every trial
-%         cfg = [];
-%         cfg.avgoverrpt = 'yes';
-%         MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
-%         
-%         MEG_single_trial{i}{t}.trial = squeeze(MEG_trials{i}.trial(t,:,:));
-%         MEG_single_trial{i}{t}.avg = squeeze(MEG_trials{i}.trial(t,:,:));
-%         MEG_single_trial{i}{t}.cov = MEG_cov.cov; %add noise cov matrix for each trial
+    % divide data to single trials 
+    for t = 1:2%size(MEG_trials{i}.trial,1)
+        
+        MEG_single_trial{i}{t} = MEG_trials_fast{i};
+        
+        % average over trials to make chan_time dimord for every trial
+        cfg = [];
+        cfg.avgoverrpt = 'yes';
+        MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
+        
+        MEG_single_trial{i}{t}.trial = squeeze(MEG_trials_fast{i}.trial(t,:,:));
+        MEG_single_trial{i}{t}.avg = squeeze(MEG_trials_fast{i}.trial(t,:,:));
+        MEG_single_trial{i}{t}.cov = MEG_cov.cov; %add noise cov matrix for each trial
         
 %         plot(MEG_trials{i}.avg(1,:), '-r')
 %         hold on
@@ -162,15 +162,17 @@ for i = 1:2
         
         % do eloreta for each trial
         cfg                         = [];
-        cfg.method                  = 'eloreta';                    %specify method 
+        cfg.method                  = 'mne';                    %specify method 
+        cfg.grad = MEG_single_trial{i}{t}.grad;   % my addition
+        cfg.channel = {'MEGMAG'}; % my addition
         cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
         cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
-        cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
-        cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
-        cfg.eloreta.lambda          = 0.05;                         %0.05regularisation parameter - try different values (3)
+        cfg.mne.prewhiten       = 'yes';                        %prewhiten data
+        cfg.mne.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
+        cfg.mne.lambda          = 0.05;                         %0.05regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
-        %source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
-        source_trials_fast{i}       = ft_sourceanalysis(cfg, MEG_trials_fast{i});
+        source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+        %source_trials_fast{i}       = ft_sourceanalysis(cfg, MEG_trials_fast{i});
         %source_changed_fast{i}       = ft_sourceanalysis(cfg, random_MEG_trials_fast{i});   
         
 %results for source for each trials       
@@ -182,25 +184,25 @@ for i = 1:2
 %        avg: [1×1 struct]
 %        cfg: [1×1 struct]
 
-%         %average parameter 'pow' for all trials 
-%         source_avg{i}   = source_trials{1}; 
-%         pow         = (pow + source_trials{t}.avg.pow)/(ntrial + t);
+        %average parameter 'pow' for all trials 
+        source_avg{i}   = source_trials{1}; 
+        pow         = (pow + source_trials{t}.avg.pow)/(ntrial + t);
     end
     
-%     % replace pow with average for all trials
-%     source_avg{i}.avg.pow = pow;
+    % replace pow with average for all trials
+    source_avg{i}.avg.pow = pow;
 %     
-%     % interpolate data
-%     cfg            = [];
-%     cfg.parameter  = 'pow';
-%     interpolate{i}    = ft_sourceinterpolate(cfg, source_trials{t} , mri.mri_orig_realigned);
-% 
+    % interpolate data
+    cfg            = [];
+    cfg.parameter  = 'pow';
+    interpolate{i}    = ft_sourceinterpolate(cfg,  source_avg{i} , mri.mri_orig_realigned);
+
 %    
-%     % plot ortho
-%     cfg = [];
-%     cfg.method        = 'ortho';
-%     cfg.funparameter  = 'pow';
-%     ft_sourceplot(cfg,interpolate{i});
+    % plot ortho
+    cfg = [];
+    cfg.method        = 'ortho';
+    cfg.funparameter  = 'pow';
+    ft_sourceplot(cfg,interpolate{i});
 %     
 %     % spatially normalize the anatomy and functional data to MNI coordinates
 %     cfg = [];
@@ -227,8 +229,8 @@ for i = 1:2
 
 
 % for averaging parameter 'pow' for all trials
-% pow     = 0;
-% ntrial  = 0;
+pow     = 0;
+ntrial  = 0;
 
 % components for slow cond
 for i = 1:6
@@ -241,7 +243,7 @@ for i = 1:6
     cfg                   = [];
     cfg.preproc.demean    = 'yes';    % enable demean to remove mean value from each single trial
     cfg.channel           = 'MEGMAG';
-    %cfg.keeptrials        = 'yes';
+    cfg.keeptrials        = 'yes';
     MEG_trials_slow{i}         = ft_timelockanalysis(cfg, data_comp{i});
     %MEG_trials_slow{i}.cov     = MEG_cov.cov;
     
@@ -255,49 +257,78 @@ for i = 1:6
 % %%take identical matrix    
 % MEG_trials_slow{i}.cov = eye(102); 
   
-%     % divide data to single trials 
-%     for t = 1:size(MEG_trials{i}.trial,1)
-%         
-%         MEG_single_trial{i}{t} = MEG_trials{i};
-%         MEG_single_trial{i}{t}.avg = MEG_trials{i}.trial(t,:,:);
-%         
-%         % average over trials to make chan_time dimord for every trial
-%         cfg = [];
-%         cfg.avgoverrpt = 'yes';
-%         MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
-%         MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial 
+    % divide data to single trials 
+    for t = 1:2 %size(MEG_trials{i}.trial,1)
         
-    
+        MEG_single_trial{i}{t} = MEG_trials_slow{i};
+        MEG_single_trial{i}{t}.avg = MEG_trials_slow{i}.trial(t,:,:);
+        
+        % average over trials to make chan_time dimord for every trial
+        cfg = [];
+        cfg.avgoverrpt = 'yes';
+        MEG_single_trial{i}{t} = ft_selectdata(cfg, MEG_single_trial{i}{t});
+        MEG_single_trial{i}{t}.cov = MEG_cov.cov;  %add noise cov matrix for each trial 
+        
+        %  % do eloreta for each trial
+        cfg                         = [];
+        cfg.method                  = 'mne';                    %specify method 
+        cfg.grad = MEG_single_trial{i}{t}.grad;   % my addition
+        cfg.channel = {'MEGMAG'}; % my addition
+        cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
+        cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
+        cfg.mne.prewhiten           = 'yes';                        %prewhiten data
+        cfg.mne.scalesourcecov      = 'yes';                        %scaling the source covariance matrix
+        cfg.mne.lambda              = 0.05;                         %0.05regularisation parameter - try different values (3)
+        cfg.channel                 = 'MEGMAG';
+        source_trials_slow{t}       = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+        
         % do eloreta for each trial   
         cfg                         = [];
         cfg.method                  = 'eloreta';                    %specify method 
         cfg.sourcemodel             = leadfield.grid_MNI_lf;        %the precomputed leadfield
         cfg.headmodel               = headmodel.individ_hdm_vol;    %the head model
-        cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
-        cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
+        %cfg.eloreta.prewhiten       = 'yes';                        %prewhiten data
+        %cfg.eloreta.scalesourcecov  = 'yes';                        %scaling the source covariance matrix
         cfg.eloreta.lambda          = 0.05;                         %regularisation parameter - try different values (3)
         cfg.channel                 = 'MEGMAG';
-        %source_trials{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
-        source_trials_slow{i}       = ft_sourceanalysis(cfg, MEG_trials_slow{i});
+        source_trials_slow{t}            = ft_sourceanalysis(cfg, MEG_single_trial{i}{t});
+        %source_trials_slow{i}       = ft_sourceanalysis(cfg, MEG_trials_slow{i});
         %source_changed_slow{i}       = ft_sourceanalysis(cfg, random_MEG_trials_slow{i});   
         
 
-%         source_avg{i} = source_trials{1};
-%         pow       = (pow + source_trials{t}.avg.pow)/(ntrial + t);
-%     
-end
+        source_avg_slow{i} = source_trials_slow{1};
+        pow       = (pow + source_trials_slow{t}.avg.pow)/(ntrial + t);
+    
+    end
 
+% replace pow with average for all trials
+    source_avg_slow{i}.avg.pow = pow;
+%     
+    % interpolate data
+    cfg            = [];
+    cfg.parameter  = 'pow';
+    interpolate_slow{i}    = ft_sourceinterpolate(cfg,  source_avg_slow{i} , mri.mri_orig_realigned);
+
+%    
+    % plot ortho
+    cfg = [];
+    cfg.method        = 'ortho';
+    cfg.funparameter  = 'pow';
+    ft_sourceplot(cfg,interpolate_slow{i});
+    
+    
 for c = 1:6
 % replace pow with difference between power in two conditions
     source_diff{c} = source_trials_fast{1};
     %source_diff{c}.avg.pow = source_changed_fast{1}.avg.pow - source_changed_slow{1}.avg.pow;
-    source_diff{c}.avg.pow = source_trials_fast{i}.avg.pow - source_trials_slow{i}.avg.pow;
-
+    source_diff{c}.avg.pow = source_trials{t}.avg.pow - source_trials_slow{t}.avg.pow;
+    
+    source_trials{t}.avg.pow = nanmean(source_trials{t}.avg.pow,2);
     % interpolate data
     cfg            = [];
     cfg.parameter  = 'pow';
-    %interpolate{i}    = ft_sourceinterpolate(cfg, source_trials_fast{i}, mri.mri_orig_realigned);
-    interpolate{i}    = ft_sourceinterpolate(cfg, source_diff{c}, mri.mri_orig_realigned);
+    interpolate{i}    = ft_sourceinterpolate(cfg, source_trials{t}, mri.mri_orig_realigned);
+    %interpolate{i}    = ft_sourceinterpolate(cfg, source_diff{c}, mri.mri_orig_realigned);
 
     % plot ortho
     cfg = [];
