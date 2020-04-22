@@ -194,6 +194,15 @@ for s=1: size (SUBJ,1)
     ylabel('absolute power, uV^2');
     saveas(figure(3),[savepath, '/1_results/freqanalysis/', subj, '_Fourier_avg_chan_mag.jpeg']);
     
+    figure(4);
+    hold on;
+    plot(avg_fft_fast_mag.freq, log(avg_fft_fast_mag.powspctrm))
+    plot(avg_fft_slow_mag.freq, log(avg_fft_slow_mag.powspctrm))
+    legend('"fast"','"slow"')
+    xlabel('Frequency, Hz');
+    ylabel('log(absolute power), uV^2');
+    saveas(figure(4),[savepath, '/1_results/freqanalysis/', subj, 'log_Fourier_avg_chan_mag.jpeg']);
+    
     %save freq analysis results
     filename = strcat(savepath, subj, '/', subj, '_freqanalysis.mat');
     save (filename, 'conv_fast_mag', 'conv_slow_mag', 'conv_fast_grad', 'fft_slow_grad', ...
