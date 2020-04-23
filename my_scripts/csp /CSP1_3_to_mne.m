@@ -87,6 +87,8 @@ for s=1: size(SUBJ,1)
                    'epochs_slow1','epochs_slow2', 'epochs_slow3')
 
 end
+
+%plot time series
 for i=[1,2,3]
     figure(1)
     subplot(1,3,i)
@@ -108,23 +110,22 @@ for num = 1:3
     cfg.output       = 'pow'; 
     cfg.taper        = 'hanning'; 
     cfg.pad          = 10; 
-    cfg.foilim       = [10 17];
+    cfg.foilim       = [6 20];
     cfg.tapsmofrq    = 3; 
     fft_fast  = ft_freqanalysis(cfg, file(num)); 
-    fft_slow   = ft_freqanalysis(cfg, file(num));
+    fft_slow   = ft_freqanalysis(cfg, file(num+3));
 
     cfg = [];
     cfg.avgoverchan = 'yes';
     fft_fast = ft_selectdata(cfg,fft_fast);
     fft_slow = ft_selectdata(cfg,fft_slow);
 
-
     figure(1)
-    subplot(2,3,num)
+    subplot(1,3,num)
     plot(fft_fast.freq, fft_fast.powspctrm, '-r')
     hold on;
     plot(fft_slow.freq, fft_slow.powspctrm, '-b')
     legend('fast', 'slow'); 
     title(strcat('csp', num2str(num)))
 end
-saveas(figure(1), [savepath, subj, '/', subj, '_spectral_power_csp_timeseries.jpeg']);
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_spectral_power_csp_1_3_timeseries.jpeg']);
