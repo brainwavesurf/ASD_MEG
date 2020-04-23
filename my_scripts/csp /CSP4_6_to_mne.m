@@ -89,7 +89,16 @@ for s=1: size(SUBJ,1)
 
 end
 
-
+for i=[1,2,3]
+    figure(1)
+    subplot(1,3,i)
+    plot(fast{i}{1}(1,1:300), '-r')
+    hold on
+    plot(slow{i}{1}(1,1:300), '-b')
+    legend('fast', 'slow');
+    title(strcat('csp', num2str(i+3)))
+end
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_4_6_timeseries.jpeg']);  
 
 %double check to estimate the spectral power for all eigenvalues
 file = [epochs_fast1, epochs_fast2, epochs_fast3,...
