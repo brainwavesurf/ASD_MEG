@@ -71,7 +71,7 @@ for s=1: size (SUBJ,1)
 
     A1 = inv(W1); % nIC x nMAG: 102x102; filters must be positive and negative: ok 
 
-    indsel = size(W1,1)-2:size(W1,1); %pick 3 eigenvalues 
+    indsel = 1:3; %pick 3 eigenvalues 
     W1 = W1(:,indsel); %nMAG x nCSP: 102x3 , mixing matrix
     A1 = A1(indsel,:); %nCSP x nMAG: 3x102 , unmixing matrix
 
