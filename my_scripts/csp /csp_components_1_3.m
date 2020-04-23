@@ -87,7 +87,7 @@ for s=1: size (SUBJ,1)
     Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 6 x nsampl x ntrial = [6 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
-    filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1-3.mat');
+    filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1_3.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
     
 end 
