@@ -32,13 +32,13 @@ for s=1: size(SUBJ,1)
     subj = SUBJ(s,:); 
 
     % read preprocessed data, 10-17 Hz bandpass
-    bp = load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
+    load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
 
     % select mag epochs for slow and fast conditions in interstimuli [-0.8 0] and stim [0.4 1.2] period
     cfg = [];
     cfg.channel = 'megmag';
-    data_slow = ft_selectdata(cfg, bp.slow_alpha_bp);
-    data_fast = ft_selectdata(cfg, bp.fast_alpha_bp); 
+    data_slow = ft_selectdata(cfg, slow_alpha_isi);
+    data_fast = ft_selectdata(cfg, fast_alpha_isi); 
     % load csp data for two conditions
     load(strcat(savepath, subj, '/', subj, '_csp_analysis_1_3.mat'));
 
@@ -87,14 +87,22 @@ for s=1: size(SUBJ,1)
                    'epochs_slow1','epochs_slow2', 'epochs_slow3')
 
 end
-
-
+for i=[1,2,3]
+    figure(1)
+    subplot(1,3,i)
+    plot(fast{i}{1}(1,1:300), '-r')
+    hold on
+    plot(slow{i}{1}(1,1:300), '-b')
+    legend('fast', 'slow');
+    title(strcat('csp', num2str(i)))
+end
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_1_3_timeseries.jpeg']);  
 
 %double check to estimate the spectral power for all eigenvalues
 file = [epochs_fast1, epochs_fast2, epochs_fast3,...
         epochs_slow1, epochs_slow2, epochs_slow3];
-    
-for num = 1:6
+  
+for num = 1:3
     cfg = [];
     cfg.method       = 'mtmfft';
     cfg.output       = 'pow'; 
