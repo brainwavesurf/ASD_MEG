@@ -64,27 +64,30 @@ for s=1: size (SUBJ,1)
     %           Condition1  Condition1+Condition2
     [W1,D1] = eig(cov_slow, cov_slow + cov_fast); %W1: spatial filters
 
-    figure;plot(diag(D1),'m*')
-    
+%     figure;plot(diag(D1), '.-k')
+%     xlabel('#eigenvalue')
+%     ylabel('eigenvalue')
+%     saveas(figure(2), [savepath, '1_results/CSP_matlab_plots/', subj, '_eigenvalue.jpeg']); 
+
     A1 = inv(W1); % nIC x nMAG: 102x102; filters must be positive and negative: ok 
 
-    indsel = 1:3; %pick 3 eigenvalues from each tail
-    W1 = W1(:,indsel); %nMAG x nCSP: 102x6 , mixing matrix
-    A1 = A1(indsel,:); %nCSP x nMAG: 6x102 , unmixing matrix
+    indsel = size(W1,1)-2:size(W1,1); %pick 3 eigenvalues 
+    W1 = W1(:,indsel); %nMAG x nCSP: 102x3 , mixing matrix
+    A1 = A1(indsel,:); %nCSP x nMAG: 3x102 , unmixing matrix
 
-    Xcsp_slow = nan(ntrial_slow, sampoints_slow, size(W1,2)); %64x401x6
-    Xcsp_fast = nan(ntrial_fast, sampoints_fast, size(W1,2)); %65x401x6
+    Xcsp_slow = nan(ntrial_slow, sampoints_slow, size(W1,2)); %64x401x3
+    Xcsp_fast = nan(ntrial_fast, sampoints_fast, size(W1,2)); %65x401x3
     
     %% pattern maximizing the differences between cov1/cov2
 
-    pattern_ICcsp_slowVSfast = transpose(A1); % A_CSP [nCSP x nMEG] 102 x 6
+    pattern_ICcsp_slowVSfast = transpose(A1); % A_CSP [nCSP x nMEG] 102 x 3
 
     for j = 1:ntrial_slow   
-    Xcsp_slow(j,:,:)=transpose(squeeze(data_slow_tot(:,:,j)))*W1; % ntrial x nsampl x 3 = [ntrial x nsampl x nIC] * [nIC x 6] 
+    Xcsp_slow(j,:,:)=transpose(squeeze(data_slow_tot(:,:,j)))*W1; % ntrial x nsampl x 3 = [ntrial x nsampl x nIC] * [nIC x 3] 
     end  
 
     for j = 1:ntrial_fast  
-    Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 6 x nsampl x ntrial = [6 x nIC ] x [nIC x nsampl x ntrial]  
+    Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 3 x nsampl x ntrial = [3 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
     filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1_3.mat');
