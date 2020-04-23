@@ -40,17 +40,19 @@ for s=1: size(SUBJ,1)
     data_slow = ft_selectdata(cfg, slow_alpha_isi);
     data_fast = ft_selectdata(cfg, fast_alpha_isi); 
     % load csp data for two conditions
-    load(strcat(savepath, subj, '/', subj, '_csp_analysis_1_3.mat'));
+    load(strcat(savepath, subj, '/', subj, '_csp_analysis_1_6.mat'));
 
     % converted the Xcsp_fast and Xcsp_slow to MEG time series
-    A = cell(1,3);
+    A = cell(1,12);
     csp_data_fast = cell(1,size(Xcsp_fast,1));
-    fast = cell(1,3);
+    fast = cell(1,12);
     csp_data_slow = cell(1,size(Xcsp_slow,1));
-    slow = cell(1,3);
-    for n = 1:3
+    slow = cell(1,12);
+    epochs_fast = cell(1,12);
+    epochs_slow = cell(1,12);
+    for n = 1:12
         A_mat = A1;
-        for i = 1:3
+        for i = 1:12
             if i~=n
                 A_mat(i,:) = 0;
             end
@@ -70,41 +72,33 @@ for s=1: size(SUBJ,1)
             csp_data_slow{j} = squeeze(trial_slow(j,:,:))';
         end
         slow{n} = csp_data_slow; % last three components for slow cond
+        
+        epochs_fast{n} = data_fast; epochs_fast{n}.trial = fast{n};
+        epochs_slow{n} = data_slow; epochs_slow{n}.trial = slow{n};
     end
 
-    epochs_fast1 = data_fast; epochs_fast1.trial = fast{1};
-    epochs_fast2 = data_fast; epochs_fast2.trial = fast{2};
-    epochs_fast3 = data_fast; epochs_fast3.trial = fast{3}; 
-    
-    epochs_slow1 = data_slow; epochs_slow1.trial = slow{1};
-    epochs_slow2 = data_slow; epochs_slow2.trial = slow{2};
-    epochs_slow3 = data_slow; epochs_slow3.trial = slow{3};
-
     %save freq analysis results
-    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_3.mat');
+    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6.mat');
     
-    save(filename, 'epochs_fast1', 'epochs_fast2','epochs_fast3',...
-                   'epochs_slow1','epochs_slow2', 'epochs_slow3')
-
+    save(filename, 'epochs_fast', 'epochs_slow')
 end
 
 %plot time series
-for i=[1,2,3]
+for i=7:12
     figure(1)
-    subplot(1,3,i)
+    subplot(2,3,i-6)
     plot(fast{i}{1}(1,1:300), '-r')
     hold on
     plot(slow{i}{1}(1,1:300), '-b')
     legend('fast', 'slow');
-    title(strcat('csp', num2str(i)))
+    title(strcat('csp', num2str(90+i)))
 end
-saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_1_3_timeseries.jpeg']);  
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_97_102_timeseries.jpeg']);  
 
 %double check to estimate the spectral power for all eigenvalues
-file = [epochs_fast1, epochs_fast2, epochs_fast3,...
-        epochs_slow1, epochs_slow2, epochs_slow3];
+file = [epochs_fast, epochs_slow];
   
-for num = 1:3
+for num = 7:12
     cfg = [];
     cfg.method       = 'mtmfft';
     cfg.output       = 'pow'; 
@@ -112,8 +106,8 @@ for num = 1:3
     cfg.pad          = 10; 
     cfg.foilim       = [6 20];
     cfg.tapsmofrq    = 3; 
-    fft_fast  = ft_freqanalysis(cfg, file(num)); 
-    fft_slow   = ft_freqanalysis(cfg, file(num+3));
+    fft_fast  = ft_freqanalysis(cfg, epochs_fast{num}); 
+    fft_slow   = ft_freqanalysis(cfg, epochs_slow{num});
 
     cfg = [];
     cfg.avgoverchan = 'yes';
@@ -121,11 +115,11 @@ for num = 1:3
     fft_slow = ft_selectdata(cfg,fft_slow);
 
     figure(1)
-    subplot(1,3,num)
+    subplot(2,3,num-6)
     plot(fft_fast.freq, fft_fast.powspctrm, '-r')
     hold on;
     plot(fft_slow.freq, fft_slow.powspctrm, '-b')
     legend('fast', 'slow'); 
-    title(strcat('csp', num2str(num)))
+    title(strcat('csp', num2str(90+num)))
 end
-saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_spectral_power_csp_1_3_timeseries.jpeg']);
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_spectral_power_csp_97_102_timeseries.jpeg']);
