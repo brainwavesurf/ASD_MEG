@@ -104,16 +104,16 @@ saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_4_6_time
 file = [epochs_fast1, epochs_fast2, epochs_fast3,...
         epochs_slow1, epochs_slow2, epochs_slow3];
     
-for num = 1:6
+for num = 1:3
     cfg = [];
     cfg.method       = 'mtmfft';
     cfg.output       = 'pow'; 
     cfg.taper        = 'hanning'; 
     cfg.pad          = 10; 
-    cfg.foilim       = [10 17];
+    cfg.foilim       = [7 20];
     cfg.tapsmofrq    = 3; 
     fft_fast  = ft_freqanalysis(cfg, file(num)); 
-    fft_slow   = ft_freqanalysis(cfg, file(num));
+    fft_slow   = ft_freqanalysis(cfg, file(num+3));
 
     cfg = [];
     cfg.avgoverchan = 'yes';
@@ -122,11 +122,11 @@ for num = 1:6
 
 
     figure(1)
-    subplot(2,3,num)
+    subplot(1,3,num)
     plot(fft_fast.freq, fft_fast.powspctrm, '-r')
     hold on;
     plot(fft_slow.freq, fft_slow.powspctrm, '-b')
     legend('fast', 'slow'); 
-    title(strcat('csp', num2str(num)))
+    title(strcat('csp', num2str(num+3)))
 end
-saveas(figure(1), [savepath, subj, '/', subj, '_spectral_power_csp_timeseries.jpeg']);
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj '_spectral_power_csp_4_6_timeseries.jpeg']);
