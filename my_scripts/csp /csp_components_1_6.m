@@ -1,3 +1,7 @@
+%calculation CSP component
+%creating CSP time-series
+%saving for python importing
+
 % comments for DATA from ONE SUBJ #0107 in 2 conditions and in an epoch of 401 sampling points, srate = 500Hz, MEGMAG data
 % ntrial_slow = 64 trials, ntrial_fast = 65
 close all;
@@ -93,5 +97,71 @@ for s=1: size (SUBJ,1)
     filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1_6.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
     
+    % read preprocessed data, 10-17 Hz bandpass
+    load(strcat(savepath, subj, '/', subj, '_preproc_alpha_10_17_epochs.mat'));
+
+    % select mag epochs for slow and fast conditions in interstimuli [-0.8 0] and stim [0.4 1.2] period
+    cfg = [];
+    cfg.channel = 'megmag';
+    data_slow = ft_selectdata(cfg, slow_alpha_isi);
+    data_fast = ft_selectdata(cfg, fast_alpha_isi); 
+
+    % converted the Xcsp_fast and Xcsp_slow to MEG time series
+    A = cell(1,12);
+    csp_data_fast = cell(1,size(Xcsp_fast,1));
+    fast = cell(1,12);
+    csp_data_slow = cell(1,size(Xcsp_slow,1));
+    slow = cell(1,12);
+    epochs_fast = cell(1,12);
+    epochs_slow = cell(1,12);
+    for n = 1:12
+        A_mat = A1;
+        for i = 1:12
+            if i~=n
+                A_mat(i,:) = 0;
+            end
+            A{n} = A_mat; % leave only one component, the rest ones are 0s 
+        end
+        %for fast
+        trial_fast = zeros(size(Xcsp_fast,1), size(Xcsp_fast,2), 102);
+        for j = 1:size(Xcsp_fast,1)
+            trial_fast(j,:,:) = squeeze(Xcsp_fast(j,:,:))*A{n};
+            csp_data_fast{j} = squeeze(trial_fast(j,:,:))';
+        end
+        fast{n} = csp_data_fast; % first three components for fast cond
+        %for slow
+        trial_slow = zeros(size(Xcsp_slow,1), size(Xcsp_slow,2), 102);
+        for j = 1:size(Xcsp_slow,1)
+            trial_slow(j,:,:) = squeeze(Xcsp_slow(j,:,:))*A{n};
+            csp_data_slow{j} = squeeze(trial_slow(j,:,:))';
+        end
+        slow{n} = csp_data_slow; % last three components for slow cond
+        
+        epochs_fast{n} = data_fast; epochs_fast{n}.trial = fast{n};
+        epochs_slow{n} = data_slow; epochs_slow{n}.trial = slow{n};
+    end
+    
+    %save freq analysis results
+    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6.mat');  
+    save(filename, 'epochs_fast', 'epochs_slow')
+    
+    %save in the suitable for mne-python form
+    epochs_fast1 = epochs_fast{1}; 
+    epochs_fast2 = epochs_fast{2};
+    epochs_fast3 = epochs_fast{3};
+    epochs_fast4 = epochs_fast{4};
+    epochs_fast5 = epochs_fast{5};
+    epochs_fast6 = epochs_fast{6};
+
+    epochs_slow1 = epochs_slow{1};
+    epochs_slow2 = epochs_slow{2};
+    epochs_slow3 = epochs_slow{3};
+    epochs_slow4 = epochs_slow{4};
+    epochs_slow5 = epochs_slow{5};
+    epochs_slow6 = epochs_slow{6};
+
+    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6_to_mne.mat');
+    save(filename, 'epochs_fast1', 'epochs_slow1', 'epochs_fast2', 'epochs_slow2', 'epochs_fast3', 'epochs_slow3',...
+        'epochs_fast4', 'epochs_slow4', 'epochs_fast5', 'epochs_slow5', 'epochs_fast6', 'epochs_slow6');
 end 
 tEnd = toc(tStart);
