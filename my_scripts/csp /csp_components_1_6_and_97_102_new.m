@@ -66,16 +66,19 @@ for s=1: size (SUBJ,1)
     % eig(cov1, cov2) is similar, but different normalization
 
     %           Condition1  Condition1+Condition2
-    [W1,D1] = eig(cov_slow, cov_slow + cov_fast); %W1: spatial filters
-
-%     figure;plot(diag(D1), '.-k')
+    [W1,D1] = eig(cov_fast, cov_fast + cov_slow); %W1: spatial filters
+     
+%     plot(diag(D1), '.-b') 
+%     hold on  
+%     plot(diag(D2), '.-r')
 %     xlabel('#eigenvalue')
 %     ylabel('eigenvalue')
-%     saveas(figure(2), [savepath, '1_results/CSP_matlab_plots/', subj, '_eigenvalue.jpeg']); 
+%     legend('old(slow>fast)','new(fast>slow)')
+%     saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, 'comparison_eigenvalues_old_and_new.jpeg']); 
 
     A1 = inv(W1); % nIC x nMAG: 102x102; filters must be positive and negative: ok 
 
-    indsel = [1:6, size(W1,1)-5:size(W1,1)]; %pick 3 eigenvalues 
+    indsel = [1:6 size(W1,1)-5:size(W1,1)]; %pick 3 eigenvalues 
     W1 = W1(:,indsel); %nMAG x nCSP: 102x3 , mixing matrix
     A1 = A1(indsel,:); %nCSP x nMAG: 3x102 , unmixing matrix
 
@@ -94,7 +97,7 @@ for s=1: size (SUBJ,1)
     Xcsp_fast(j,:,:)=transpose(squeeze(data_fast_tot(:,:,j)))*W1; %% 3 x nsampl x ntrial = [3 x nIC ] x [nIC x nsampl x ntrial]  
     end
 
-    filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1_6.mat');
+    filename = strcat(savepath, subj, '/', subj, '_csp_analysis_1_6_and_97_102_new.mat');
     save(filename, 'W1', 'A1', 'pattern_ICcsp_slowVSfast', 'Xcsp_fast', 'Xcsp_slow');
     
     % read preprocessed data, 10-17 Hz bandpass
@@ -142,26 +145,87 @@ for s=1: size (SUBJ,1)
     end
     
     %save freq analysis results
-    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6.mat');  
+    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6_and_97_102_new.mat');  
     save(filename, 'epochs_fast', 'epochs_slow')
     
     %save in the suitable for mne-python form
     epochs_fast1 = epochs_fast{1}; 
     epochs_fast2 = epochs_fast{2};
     epochs_fast3 = epochs_fast{3};
-    epochs_fast4 = epochs_fast{4};
+    epochs_fast4 = epochs_fast{4}; 
     epochs_fast5 = epochs_fast{5};
     epochs_fast6 = epochs_fast{6};
-
-    epochs_slow1 = epochs_slow{1};
+    
+    epochs_fast97 = epochs_fast{7}; 
+    epochs_fast98 = epochs_fast{8};
+    epochs_fast99 = epochs_fast{9};
+    epochs_fast100 = epochs_fast{10}; 
+    epochs_fast101 = epochs_fast{11};
+    epochs_fast102 = epochs_fast{12};
+    
+    epochs_slow1 = epochs_slow{1}; 
     epochs_slow2 = epochs_slow{2};
     epochs_slow3 = epochs_slow{3};
-    epochs_slow4 = epochs_slow{4};
+    epochs_slow4 = epochs_slow{4}; 
     epochs_slow5 = epochs_slow{5};
     epochs_slow6 = epochs_slow{6};
-
-    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6_to_mne.mat');
-    save(filename, 'epochs_fast1', 'epochs_slow1', 'epochs_fast2', 'epochs_slow2', 'epochs_fast3', 'epochs_slow3',...
-        'epochs_fast4', 'epochs_slow4', 'epochs_fast5', 'epochs_slow5', 'epochs_fast6', 'epochs_slow6');
+    
+    epochs_slow97 = epochs_slow{7}; 
+    epochs_slow98 = epochs_slow{8};
+    epochs_slow99 = epochs_slow{9};
+    epochs_slow100 = epochs_slow{10}; 
+    epochs_slow101 = epochs_slow{11};
+    epochs_slow102 = epochs_slow{12};    
+    
+    filename = strcat(savepath, subj, '/', subj, '_fieldtrip_csp_1_6_and_97_102_new_to_mne.mat');
+    save(filename,'epochs_fast1','epochs_fast2','epochs_fast3','epochs_fast4','epochs_fast5','epochs_fast6',...
+    'epochs_fast97','epochs_fast98','epochs_fast99','epochs_fast100','epochs_fast101','epochs_fast102',...
+    'epochs_slow1','epochs_slow2','epochs_slow3','epochs_slow4','epochs_slow5','epochs_slow6',...
+    'epochs_slow97','epochs_slow98','epochs_slow99','epochs_slow100','epochs_slow101','epochs_slow102');
 end 
 tEnd = toc(tStart);
+
+
+
+%plots
+for i=1:6
+    figure(1)
+    subplot(2,3,i)
+    plot(fast{i}{1}(1,1:300), '-r')
+    hold on
+    plot(slow{i}{1}(1,1:300), '-b')
+    legend('fast', 'slow');
+    title(strcat('csp', num2str(i)))
+end
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_csp_1_6_timeseries_new.jpeg']);  
+
+%double check to estimate the spectral power for all eigenvalues
+file = [epochs_fast1,epochs_fast2,epochs_fast3,epochs_fast4,epochs_fast5,epochs_fast6,...
+        epochs_slow1,epochs_slow2,epochs_slow3,epochs_slow4,epochs_slow5,epochs_slow6];
+    
+for num = 1:6
+    cfg = [];
+    cfg.method       = 'mtmfft';
+    cfg.output       = 'pow'; 
+    cfg.taper        = 'hanning'; 
+    cfg.pad          = 10; 
+    cfg.foilim       = [10 17];
+    cfg.tapsmofrq    = 3; 
+    fft_fast  = ft_freqanalysis(cfg, file(num)); 
+    fft_slow   = ft_freqanalysis(cfg, file(num+6));
+
+    cfg = [];
+    cfg.avgoverchan = 'yes';
+    fft_fast = ft_selectdata(cfg,fft_fast);
+    fft_slow = ft_selectdata(cfg,fft_slow);
+
+
+    figure(1)
+    subplot(2,3,num)
+    plot(fft_fast.freq, fft_fast.powspctrm, '-r')
+    hold on;
+    plot(fft_slow.freq, fft_slow.powspctrm, '-b')
+    legend('fast', 'slow'); 
+    title(strcat('csp', num2str(num)))
+end
+saveas(figure(1), [savepath, '1_results/CSP_matlab_plots/', subj, '_spectral_power_csp_1_6_timeseries_new.jpeg']);
