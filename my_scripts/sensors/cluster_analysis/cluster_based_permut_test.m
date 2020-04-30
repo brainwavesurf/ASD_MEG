@@ -36,7 +36,7 @@ for s=1:size(SUBJ_ALL,1)
     subj = SUBJ_ALL(s,:); 
     %load data after freqanalysis 
     load(strcat(savepath, subj, '/', subj, '_alpha_freqanalysis.mat'));
-    %after mtmconvol
+    %after fft
     freq_fast_isi{s} = fft_fast_isi;
     freq_slow_isi{s} = fft_slow_isi;
 end
@@ -51,7 +51,7 @@ for s=1:size(SUBJ_NT,1)
     subj = SUBJ_NT(s,:); 
     %load data after freqanalysis 
     load(strcat(savepath, subj, '/', subj, '_alpha_freqanalysis.mat'));
-    %after mtmconvol
+    %after fft
     freq_fast_isi_NT{s} = fft_fast_isi;
     freq_slow_isi_NT{s} = fft_slow_isi;
 end
@@ -65,16 +65,22 @@ for s=1:size(SUBJ_ASD,1)
     subj = SUBJ_ASD(s,:); 
     %load data after freqanalysis 
     load(strcat(savepath, subj, '/', subj, '_alpha_freqanalysis.mat'));
-    %after mtmconvol
+    %after fft
     freq_fast_isi_ASD{s} = fft_fast_isi;
     freq_slow_isi_ASD{s} = fft_slow_isi;
 end
 
-%mag or grad
-channels     = 'megmag'; % 'megplanar';
-layout1      = 'neuromag306mag_helmet.mat'; %'neuromag306planar_helmet.mat';
-layout2      = 'neuromag306mag.lay'; %'neuromag306planar.lay'; 
-template     = 'neuromag306mag_neighb.mat';  % neuromag306planar_neighb.mat'; 
+%mag 
+channels     = 'megmag'; 
+layout1      = 'neuromag306mag_helmet.mat'; 
+layout2      = 'neuromag306mag.lay'; 
+template     = 'neuromag306mag_neighb.mat';  
+
+% %grad
+% channels     = 'megplanar'; 
+% layout1      = 'neuromag306planar_helmet.mat'; 
+% layout2      = 'neuromag306planar.lay'; 
+% template     = 'neuromag306planar_neighb.mat'; 
 %% do cluster-based permutation test for ALL
 cfg = [];
 cfg.method      = 'template'; 
@@ -82,8 +88,8 @@ cfg.template    = template;
 cfg.layout      = layout2;             
 cfg.feedback    = 'yes';                             
 neighbours      = ft_prepare_neighbours(cfg, freq_fast_isi{1});
-neighbours_NT      = ft_prepare_neighbours(cfg, freq_fast_isi_NT{1});
-neighbours_ASD      = ft_prepare_neighbours(cfg, freq_fast_isi_ASD{1});
+neighbours_NT   = ft_prepare_neighbours(cfg, freq_fast_isi_NT{1});
+neighbours_ASD  = ft_prepare_neighbours(cfg, freq_fast_isi_ASD{1});
 
 cfg=[];
 cfg.channel     = channels; 
@@ -107,6 +113,7 @@ cfg.uvar                = 2;
 cfg.neighbours  = neighbours;
 [stat_all] = ft_freqstatistics(cfg, freq_fast_isi{:}, freq_slow_isi{:});
 
+cfg.design = [];
 cfg.design(1,1:2*nsub_NT)  = [ones(1,nsub_NT) 2*ones(1,nsub_NT)];
 cfg.design(2,1:2*nsub_NT)  = [1:nsub_NT 1:nsub_NT];
 cfg.ivar                = 1; 
@@ -114,6 +121,7 @@ cfg.uvar                = 2;
 cfg.neighbours  = neighbours_NT;
 [stat_NT] = ft_freqstatistics(cfg, freq_fast_isi_NT{:}, freq_slow_isi_NT{:});
 
+cfg.design = [];
 cfg.design(1,1:2*nsub_ASD)  = [ones(1,nsub_ASD) 2*ones(1,nsub_ASD)];
 cfg.design(2,1:2*nsub_ASD)  = [1:nsub_ASD 1:nsub_ASD];
 cfg.ivar                = 1; 
@@ -125,8 +133,10 @@ cfg.neighbours  = neighbours_ASD;
 filename = strcat(savepath, '1_results/sensor_clusters/', 'cluster_based_stat_mag.mat');
 save(filename, 'stat_all', 'stat_NT', 'stat_ASD')
 
-% filename = strcat(savepath, '1_results/', 'cluster_based_stat_grad.mat');
+% filename = strcat(savepath, '1_results/sensor_clusters/', 'cluster_based_stat_grad.mat');
 % save(filename, 'stat_all', 'stat_NT', 'stat_ASD')
+
+
 
 %plot
 cfg = [];
@@ -136,13 +146,37 @@ cfg.layout = layout2;
 ft_clusterplot(cfg, stat_all); 
 ft_clusterplot(cfg, stat_NT); 
 ft_clusterplot(cfg, stat_ASD); 
-
-%plot 
+ 
 saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_all_mag.jpeg']);
 saveas(figure(2),[savepath, '/1_results/sensor_clusters/', 'cluster_NT_mag.jpeg']);
-saveas(figure(3),[savepath, '/1_results/sensor_clusters/', 'cluster_ASD_mag.jpeg']);
+saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_ASD_mag.jpeg']);
 
-% saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_all_grad.jpeg']);
-% saveas(figure(2),[savepath, '/1_results/sensor_clusters/', 'cluster_NT_grad.jpeg']);
-% saveas(figure(3),[savepath, '/1_results/sensor_clusters/', 'cluster_ASD_grad.jpeg']);
+saveas(figure(2),[savepath, '/1_results/sensor_clusters/', 'cluster_all_grad_2.jpeg']);
+saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_NT_grad.jpeg']);
+saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_ASD_grad.jpeg']);
 
+
+load(strcat(savepath, '1_results/sensor_clusters/', 'cluster_based_stat_mag.mat'));
+%load(strcat(savepath, '1_results/sensor_clusters/', 'cluster_based_stat_grad.mat'));
+%NN=number_of_significant_clusters
+NN=2;
+cfg=[];cfg.layout=layout2;
+layout = ft_prepare_layout(cfg, []);
+for n=1:NN
+    clusterN=n;
+    [ch, fr] = find(stat_all.posclusterslabelmat == clusterN);
+    F1 = stat_all.freq(min(fr));
+    F2 = stat_all.freq(max(fr));
+    CH = unique(ch);
+   
+    subplot(2,1,n)
+    ft_plot_layout(layout, 'label', 'yes', 'chanindx',  CH);
+    title (['size:', num2str(size(fr)),', Freq:', num2str(F1), '-', num2str(F2), 'Hz, sig: p=', num2str(stat_all.posclusters(n).prob)]); 
+   %%
+end
+
+suptitle ('clusters for all subj, Magnetometers, 2 to 40 Hz')
+%suptitle ('clusters for ASD subj, Gradiometers, 2 to 40 Hz')
+
+saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_channels_mag_all.jpeg']);
+%saveas(figure(1),[savepath, '/1_results/sensor_clusters/', 'cluster_channels_grad_ASD.jpeg']);
